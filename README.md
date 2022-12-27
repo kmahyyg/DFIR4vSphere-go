@@ -14,6 +14,12 @@ go mod tidy
 
 Check [docs](/docs/get-started.md) .
 
+For detailed commands: Check [full help docs](/docs/full-help.md).
+
+# Debug
+
+Try: https://github.com/vmware/govmomi/tree/main/vcsim which mocked a vCenter API.
+
 # License
 
 GNU GPL v3

@@ -1,11 +1,15 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/kmahyyg/DFIR4vSphere-go/pkg/common"
+	"github.com/kmahyyg/DFIR4vSphere-go/pkg/subcmds"
+	"github.com/kmahyyg/DFIR4vSphere-go/pkg/vsphere_api"
 	log "github.com/sirupsen/logrus"
 	"io"
+	"net/url"
 	"os"
 	"os/signal"
 	"sync"
@@ -49,14 +53,14 @@ func main() {
 		{
 			Name: "http_proxy", // ask proxy
 			Prompt: &survey.Input{
-				Message: "HTTP Proxy URL? (http://HOST:PORT) (If not, press enter) ",
+				Message: "HTTP Proxy URL? (http://HOST:PORT) (If not, press enter)",
 				Help:    "Example: \"http://127.0.0.1:3128\".",
 			},
 		},
 		{
 			Name: "vsphere_hostport",
 			Prompt: &survey.Input{
-				Message: "vSphere URL? (https://HOST:PORT, do not ignore port, default 443) ",
+				Message: "vSphere URL? (https://HOST:PORT, default 443)",
 				Help:    "Example: \"https://192.168.56.128:443\", vCenter URL or ESXi URL here ",
 			},
 			Validate: survey.Required,
@@ -64,7 +68,7 @@ func main() {
 		{
 			Name: "vsphere_user",
 			Prompt: &survey.Input{
-				Message: "Administrator Username? ",
+				Message: "Administrator Username?",
 				Help: "By default, vCenter use: administrator@vsphere.local, ESXi use: root; " +
 					"if you are not using password-based authentication, we are not supported currently.",
 			},
@@ -72,15 +76,15 @@ func main() {
 		},
 		{
 			Name:     "vsphere_pass",
-			Prompt:   &survey.Password{Message: "Administrator Password? "},
+			Prompt:   &survey.Password{Message: "Administrator Password?"},
 			Validate: survey.Required,
 		},
 		{
-			Name: "standalone_esxi",
+			Name: "skip_tls_verify",
 			Prompt: &survey.Confirm{
-				Message: "Is input host a standalone ESXi Host? ",
+				Message: "Skip TLS Certificate Check?",
 				Default: false,
-				Help:    "If your URL is vCenter, choose false. Else, choose true.",
+				Help:    "Leave it as default unless you know what you are doing.",
 			},
 		},
 	}
@@ -89,18 +93,54 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	log.Infoln("User Answer: " + common.UserAnswer.String())
+	log.Debugln("User Answer: " + common.UserAnswer.String())
 	log.Debugln("User Password: " + common.UserAnswer.Password)
-	// user input done
-
+	// user input finished
 	// start build connection
+	// build sdk path
+	var proxyURLInstance *url.URL = nil
+	if common.UserAnswer.HttpProxyHost != "" {
+		var proxyCheckErr error
+		proxyURLInstance, proxyCheckErr = url.Parse(common.UserAnswer.HttpProxyHost)
+		if proxyURLInstance.Path != "" {
+			proxyCheckErr = errors.New("proxy url should not have any path and querystring")
+		}
+		if proxyCheckErr != nil {
+			log.Fatalln("HTTP Proxy Invalid: " + proxyCheckErr.Error())
+		}
+		log.Infoln("User set to use HTTP Proxy, pre-flight check passed.")
+	}
+	vcURL, err := url.Parse(common.UserAnswer.HostAddr)
+	if vcURL.Scheme != "https" {
+		log.Fatalln("vSphere Host should only use HTTPS")
+	}
+	vcURL.Path = "/sdk"
+	finalUserInfoInURL := url.UserPassword(common.UserAnswer.Username, common.UserAnswer.Password)
+	vcURL.User = finalUserInfoInURL
+	log.Debugln("Final built URL for vSphere: " + vcURL.String())
+	// build client
+	err = vsphere_api.GlobalClient.Init(vcURL, common.UserAnswer.SkipTLSVerify, proxyURLInstance)
+	if err != nil {
+		log.Fatalln("Initialize Environment for vSphere Client failed: ", err.Error())
+	}
+	log.Infoln("vSphere Client Environment Set.")
+	err = vsphere_api.GlobalClient.NewClient()
+	if err != nil {
+		log.Fatalln("Create vSphere Client Instance Failed: " + err.Error())
+	}
+	log.Infoln("vSphere Client Initialized.")
+	// check login
+	err = vsphere_api.GlobalClient.LoginViaPassword()
+	if err != nil {
+		log.Fatalln("Cannot login to vSphere: " + err.Error())
+	}
+	log.Infoln("Login Successful.")
+	defer vsphere_api.GlobalClient.Logout()
 	// if not working, detect error and warn user then exit
-
-	// ask user cmd
-	// but build output file first
-
-	// defer to cleanup
-
+	err = vsphere_api.GlobalClient.ShowAPIVersion()
+	if err != nil {
+		log.Fatalln("Connection Check - API Version Failed: " + err.Error())
+	}
 	// handle signal
 	var sigChan = make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt, os.Kill)
@@ -111,12 +151,13 @@ func main() {
 	go func() {
 		wgBackground.Add(1)
 		defer wgBackground.Done()
-		// query input
+		promptPS1 := fmt.Sprintf("[%s @ %s] [>_] $", finalUserInfoInURL.Username(), vcURL.Host)
+		// query user input
 		for {
 			var nextCmd string
 			err := survey.AskOne(&survey.Input{
-				Message: "[>_] $ ",
-				Help:    "Supported commands: [support_bundle output=filepath] [test_connection] [basic_info] [vi_events light_mode=bool] [exit] [full_help]",
+				Message: promptPS1,
+				Help:    "Supported commands: [support_bundle] [try_reconnect] [basic_info] [vi_events] [exit] [full_help]",
 			}, &nextCmd, survey.WithValidator(survey.Required))
 			if err != nil {
 				log.Fatalln(err)
@@ -127,14 +168,25 @@ func main() {
 				close(sigChan)
 				return
 			case "full_help":
-
+				subcmds.ShowHelp()
+				continue
+			case "support_bundle":
+				fallthrough
+			case "try_reconnect":
+				fallthrough
+			case "basic_info":
+				fallthrough
+			case "vi_events":
+				fallthrough
+			default:
+				fmt.Println("not implemented.")
 			}
 		}
 	}()
 	<-sigChan
-	fmt.Println("Exit signal received. Waiting for background tasks, max timeout 30 mins. " +
+	log.Println("Exit signal received. Waiting for background tasks. " +
 		"Press Ctrl-C again to force exit, but you may experience unexpected data loss.")
 	wgBackground.Wait()
-	fmt.Println("Background tasks done. Cleaning up... Exit after 3 seconds.")
-	time.Sleep(3 * time.Second)
+	log.Println("Background tasks done. Cleaning up... Exit after 2 seconds.")
+	time.Sleep(2 * time.Second)
 }
