@@ -62,6 +62,8 @@ var (
 )
 ```
 
+Load Event from Event Manager. If lite mode, using Event Type ID for loop.
+
 ## basic_info
 
 Output: `BasicInfo_<Host IP>_<Unix Timestamp>.csv`
@@ -97,6 +99,9 @@ For ESXi-standalone host:
 For vCenter-managed ESXi host:
 - In addition to standalone ESXi Host, will do following things:
   - Get Connected ESXi Hosts list
+  - Get Permissions in vCenter sorted via Principal (Level: Entities@DataCenter)
+  - Get Local and SSO users
+  - Get Advanced Settings "event.maxAge" to determine last X days event to retrieve
 
 ## try_reconnect
 
