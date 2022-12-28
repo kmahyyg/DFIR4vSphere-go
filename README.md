@@ -16,6 +16,8 @@ Check [docs](/docs/get-started.md) .
 
 For detailed commands: Check [full help docs](/docs/full-help.md).
 
+Please only use `exit` command for exit, if not necessary, do not use Ctrl-C to exit directly.
+
 # Debug
 
 Try: https://github.com/vmware/govmomi/tree/main/vcsim which mocked a vCenter API.

@@ -93,7 +93,11 @@ func (vsc *vSphereClient) LoginViaPassword() (err error) {
 
 // Logout should be called via defer stack, to make sure session is invalid in time.
 func (vsc *vSphereClient) Logout() (err error) {
-	return vsc.curSession.Logout(context.Background(), vsc.vmwSoapClient)
+	err = vsc.curSession.Logout(context.Background(), vsc.vmwSoapClient)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // ShowAPIVersion will be used to test connection is working or not
@@ -103,7 +107,7 @@ func (vsc *vSphereClient) ShowAPIVersion() (err error) {
 		return
 	}
 	vsc.serverIsVCenter = vsc.vmwSoapClient.IsVC()
-	log.Infof("Server Is VCenter: %v - version %s", vsc.serverIsVCenter,
+	log.Infof("Server Is vCenter: %v - version %s", vsc.serverIsVCenter,
 		vsc.vmwSoapClient.ServiceContent.About.Version)
 	return nil
 }

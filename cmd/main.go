@@ -139,7 +139,7 @@ func main() {
 	// if not working, detect error and warn user then exit
 	err = vsphere_api.GlobalClient.ShowAPIVersion()
 	if err != nil {
-		log.Fatalln("Connection Check - API Version Failed: " + err.Error())
+		log.Fatalln("Connection Check - API Version - Failed: " + err.Error())
 	}
 	// handle signal
 	var sigChan = make(chan os.Signal, 1)
@@ -148,8 +148,8 @@ func main() {
 	// max timeout 30mins
 	var wgBackground = &sync.WaitGroup{}
 	// further cmd
+	wgBackground.Add(1)
 	go func() {
-		wgBackground.Add(1)
 		defer wgBackground.Done()
 		promptPS1 := fmt.Sprintf("[%s @ %s] [>_] $", finalUserInfoInURL.Username(), vcURL.Host)
 		// query user input
@@ -170,13 +170,28 @@ func main() {
 			case "full_help":
 				subcmds.ShowHelp()
 				continue
-			case "support_bundle":
-				fallthrough
 			case "try_reconnect":
-				fallthrough
+				err = vsphere_api.GlobalClient.Logout()
+				if err != nil {
+					log.Fatalln("Trying to logout current session, error: " + err.Error())
+				}
+				log.Infoln("Log-out current session success.")
+				err = vsphere_api.GlobalClient.NewClient()
+				if err != nil {
+					log.Fatalln("Re-create vSphere Client failed: " + err.Error())
+				}
+				log.Infoln("Re-create vSphere Client success.")
+				err = vsphere_api.GlobalClient.LoginViaPassword()
+				if err != nil {
+					log.Fatalln("Re-activate new session failed: " + err.Error())
+				}
+				log.Infoln("Reconnect successfully finished.")
+				continue
 			case "basic_info":
 				fallthrough
 			case "vi_events":
+				fallthrough
+			case "support_bundle":
 				fallthrough
 			default:
 				fmt.Println("not implemented.")
