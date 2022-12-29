@@ -32,6 +32,7 @@ func init() {
 	// check if debug
 	if os.Getenv("RunEnv") == "DEBUG" {
 		log.SetLevel(log.DebugLevel)
+		log.SetReportCaller(true)
 	} else {
 		log.SetLevel(log.InfoLevel)
 	}
@@ -171,26 +172,13 @@ func main() {
 				subcmds.ShowHelp()
 				continue
 			case "try_reconnect":
-				err = vsphere_api.GlobalClient.Logout()
-				if err != nil {
-					log.Fatalln("Trying to logout current session, error: " + err.Error())
-				}
-				log.Infoln("Log-out current session success.")
-				err = vsphere_api.GlobalClient.NewClient()
-				if err != nil {
-					log.Fatalln("Re-create vSphere Client failed: " + err.Error())
-				}
-				log.Infoln("Re-create vSphere Client success.")
-				err = vsphere_api.GlobalClient.LoginViaPassword()
-				if err != nil {
-					log.Fatalln("Re-activate new session failed: " + err.Error())
-				}
-				log.Infoln("Reconnect successfully finished.")
+				subcmds.TryReconn()
 				continue
 			case "basic_info":
 				fallthrough
 			case "vi_events":
-				fallthrough
+				subcmds.RetrieveVIEvents()
+				continue
 			case "support_bundle":
 				fallthrough
 			default:
