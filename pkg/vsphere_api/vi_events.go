@@ -7,6 +7,7 @@ import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/vmware/govmomi/event"
+	"github.com/vmware/govmomi/object"
 	"github.com/vmware/govmomi/vim25/types"
 	"os"
 	"path/filepath"
@@ -130,7 +131,7 @@ func (vsc *vSphereClient) GetEventsFromMgr(lightMode bool, dcList []types.Manage
 	log.Debugln("requesting all related events successfully finished. start post-processing.")
 	// do post processing like sorting, printing, saving stuffs
 	wdir, _ := os.Getwd()
-	wDstFilePath := filepath.Join(wdir, "vi-events-"+strconv.FormatInt(time.Now().UnixNano(), 10)+".csv")
+	wDstFilePath := filepath.Join(wdir, "vi-events-"+strconv.FormatInt(time.Now().Unix(), 10)+".csv")
 	// create output file
 	outputFd, err := os.Create(wDstFilePath)
 	if err != nil {
@@ -155,7 +156,22 @@ func (vsc *vSphereClient) GetEventsFromMgr(lightMode bool, dcList []types.Manage
 	return nil
 }
 
+func (vsc *vSphereClient) NewVcsaOptionManager() error {
+	vsc.vcsaOptionMgr = object.NewOptionManager(vsc.vmwSoapClient, *vsc.vmwSoapClient.ServiceContent.Setting)
+	return nil
+}
+
 func (vsc *vSphereClient) GetEventMaxAge() error {
+	_ = vsc.NewVcsaOptionManager()
+	tmpCtx := context.Background()
+	opts, err := vsc.vcsaOptionMgr.Query(tmpCtx, "event.maxAge")
+	if err != nil {
+		return err
+	}
+	for i := range opts {
+		sOpt := opts[i].GetOptionValue()
+		log.Infof("VCSA Option: %s = %v ", sOpt.Key, sOpt.GetOptionValue().Value)
+	}
 	return nil
 }
 
@@ -179,7 +195,7 @@ func (wvie *wrappedViEvent) CSVString() []string {
 		}
 	}
 	// "Timestamp", "ID", "Level", "Event Type", "Message"
-	return []string{strconv.FormatInt(wvie.CreatedTime.UnixNano(), 10),
+	return []string{strconv.FormatInt(wvie.CreatedTime.Unix(), 10),
 		strconv.FormatInt(int64(wvie.EventID), 10), wvie.CategoryLevel, wvie.EventType, wvie.Message}
 }
 

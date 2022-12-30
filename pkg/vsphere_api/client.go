@@ -6,6 +6,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/vmware/govmomi/event"
 	"github.com/vmware/govmomi/find"
+	"github.com/vmware/govmomi/object"
 	"github.com/vmware/govmomi/session/cache"
 	"github.com/vmware/govmomi/vapi/rest"
 	"github.com/vmware/govmomi/vim25"
@@ -46,6 +47,8 @@ type vSphereClient struct {
 	// event manager
 	evntMgr    *event.Manager
 	evntMaxAge uint32
+	// vcsa option manager
+	vcsaOptionMgr *object.OptionManager
 
 	// data context when using in the same session
 	dataCtx context.Context
