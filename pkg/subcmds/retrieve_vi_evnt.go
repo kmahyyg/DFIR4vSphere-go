@@ -26,6 +26,7 @@ func RetrieveVIEvents() {
 	if err != nil {
 		log.Errorln("Cannot list datacenter from server: ", err)
 	}
+	log.Infoln("datacenter list successfully retrieved.")
 	allDC, err := vsphere_api.GlobalClient.GetCtxData("dcList")
 	if err != nil {
 		log.Errorln("Cannot get cached DC List: ", err)
@@ -57,7 +58,7 @@ func RetrieveVIEvents() {
 		{
 			Name: "selectedDC_list",
 			Prompt: &survey.MultiSelect{
-				Message:  "Select DataCenter that you would like to extract events from: ",
+				Message:  "Select Datacenter that you would like to extract events from: (if all, press enter, do not select anything)",
 				Options:  dcSelectOptions,
 				PageSize: 10,
 			},
@@ -71,5 +72,25 @@ func RetrieveVIEvents() {
 	log.Debugln("VI Events Retrieve, User Query Answer: ", survAns)
 	// build selected dc list
 	selectedDC := make([]types.ManagedObjectReference, 0)
-
+	// append selected data center to list, note: careful with empty selection
+	if len(survAns.DCList) != 0 {
+		for _, v := range survAns.DCList {
+			selectedDC = append(selectedDC, (allDC.([]list.Element)[v]).Object.Reference())
+		}
+	}
+	log.Infoln("user selected datacenter list length: ", len(selectedDC))
+	// create event mgr
+	err = vsphere_api.GlobalClient.NewEventManager()
+	if err != nil {
+		log.Errorln("createEventMgr err: ", err)
+		return
+	}
+	log.Infoln("event manager successfully initialized.")
+	// start collector working
+	err = vsphere_api.GlobalClient.GetEventsFromMgr(survAns.LightMode, selectedDC)
+	if err != nil {
+		log.Errorln("getEvntsFromMgr err: ", err)
+		return
+	}
+	log.Infoln("successfully finished retrieve_vi_events.")
 }

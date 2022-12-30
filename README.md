@@ -4,6 +4,8 @@ DFIR4vSphere Golang Implementation [WIP]
 
 # Build and Compile
 
+Build:
+
 ```shell
 go mod download
 go mod tidy
@@ -21,6 +23,15 @@ Please only use `exit` command for exit, if not necessary, do not use Ctrl-C to 
 # Debug
 
 Try: https://github.com/vmware/govmomi/tree/main/vcsim which mocked a vCenter API.
+
+# Privacy
+
+Your usage data will be collected for usage telemetry if you use prebuilt binary.
+
+All data are stored in database hosted on Cloudflare, 
+those data will only be used for verify commercial license, and will not disclose to any third-party.
+
+To opt-out from telemetry: `export IW0ulDL1Ke2OPT0UtFr0MTeLEmETrY=1`
 
 # License
 

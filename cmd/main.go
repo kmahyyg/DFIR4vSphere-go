@@ -8,6 +8,7 @@ import (
 	"github.com/kmahyyg/DFIR4vSphere-go/pkg/subcmds"
 	"github.com/kmahyyg/DFIR4vSphere-go/pkg/vsphere_api"
 	log "github.com/sirupsen/logrus"
+	"intra-git.kmahyyg.xyz/kmahyyg/usertelemetry/golang/telemetry"
 	"io"
 	"net/url"
 	"os"
@@ -46,6 +47,13 @@ func main() {
 			common.LogFileFD.Close()
 		}
 	}()
+	// telemetry
+	if os.Getenv("IW0ulDL1Ke2OPT0UtFr0MTeLEmETrY") == "" {
+		err := telemetry.Collect()
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}
 	// log software version for debugging
 	log.Infoln("Software Version: " + common.VersionStr)
 	fmt.Println("[+] DFIR4vSphere-go - " + common.VersionStr)
@@ -174,11 +182,11 @@ func main() {
 			case "try_reconnect":
 				subcmds.TryReconn()
 				continue
-			case "basic_info":
-				fallthrough
 			case "vi_events":
 				subcmds.RetrieveVIEvents()
 				continue
+			case "basic_info":
+				fallthrough
 			case "support_bundle":
 				fallthrough
 			default:

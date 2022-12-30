@@ -2,10 +2,19 @@ package vsphere_api
 
 import (
 	"context"
+	"encoding/csv"
 	"errors"
+	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/vmware/govmomi/event"
 	"github.com/vmware/govmomi/vim25/types"
+	"os"
+	"path/filepath"
+	"reflect"
+	"sort"
+	"strconv"
+	"strings"
+	"time"
 )
 
 var (
@@ -47,8 +56,8 @@ func (vsc *vSphereClient) NewEventManager() error {
 
 func (vsc *vSphereClient) GetEventsFromMgr(lightMode bool, dcList []types.ManagedObjectReference) error {
 	// init
-	resFinalLst := make([]types.BaseEvent, 0)
-	if vsc.evntMgr == nil {
+	resFinalLst := make([]*wrappedViEvent, 0)
+	if vsc.evntMgr == nil || !vsc.IsVCenter() || !vsc.postInitDone {
 		return ErrPrerequisitesNotSatisfied
 	}
 	tmpCtx := context.Background()
@@ -57,51 +66,137 @@ func (vsc *vSphereClient) GetEventsFromMgr(lightMode bool, dcList []types.Manage
 	if err != nil {
 		return err
 	}
-	// build filter
-	qFilter := &types.EventFilterSpec{
-		Entity: &types.EventFilterSpecByEntity{
-			Entity:    vsc.vmwSoapClient.ServiceContent.RootFolder,
-			Recursion: types.EventFilterSpecRecursionOptionAll,
-		},
-	}
+	log.Infoln("Getting vCenter Advanced Config: event.MaxAge finished successfully.")
+	// build filter and callback function
 	procFunc := func(ref types.ManagedObjectReference, events []types.BaseEvent) error {
+		log.Debugf("inline-procFunc: ref: %v , events: %v", ref, events)
+		// filter on base and recursively
+		qFilter := &types.EventFilterSpec{
+			Entity: &types.EventFilterSpecByEntity{
+				Entity:    ref,
+				Recursion: types.EventFilterSpecRecursionOptionAll,
+			},
+		}
+		// light mode switch
 		if lightMode {
 			qFilter.EventTypeId = lightVIEventTypesId
 		}
+		// this function is used to query detailed information
 		qEvnt, qErr := vsc.evntMgr.QueryEvents(tmpCtx, *qFilter)
 		if qErr != nil {
 			return qErr
 		}
+		log.Debugln("inline-procFunc - QueryEvents: finished with no err.")
 		for i := range qEvnt {
-			resFinalLst = append(resFinalLst, qEvnt[i])
+			nEvntCate, err := vsc.evntMgr.EventCategory(tmpCtx, qEvnt[i])
+			if err != nil {
+				log.Errorln("retrieving specific event log level unsuccessful.")
+			}
+			nEvnt := qEvnt[i].GetEvent()
+			// wrap into struct and
+			wrapNEvnt := &wrappedViEvent{
+				SubjectObj:    ref.String(),
+				CreatedTime:   nEvnt.CreatedTime,
+				CategoryLevel: nEvntCate,
+				Message:       strings.TrimSpace(nEvnt.FullFormattedMessage),
+				EventID:       nEvnt.Key,
+				EventType:     reflect.TypeOf(nEvnt).Elem().Name(),
+				bEvent:        qEvnt[i],
+			}
+			resFinalLst = append(resFinalLst, wrapNEvnt)
 		}
 		return nil
 	}
+	// if selected nothing, use root folder. Multiple events only exists on root.
+	// so, it is recommended do not select specific datacenter unless you are required to do so.
 	var finalObjRefLstBase []types.ManagedObjectReference
 	if len(dcList) == 0 {
 		finalObjRefLstBase = append(finalObjRefLstBase, vsc.vmwSoapClient.ServiceContent.RootFolder)
 	} else {
 		finalObjRefLstBase = dcList
 	}
+	//
 	if lightMode {
-		err := vsc.evntMgr.Events(tmpCtx, finalObjRefLstBase, 10, false, false, procFunc, lightVIEventTypesId...)
+		err := vsc.evntMgr.Events(tmpCtx, finalObjRefLstBase, 10, false, true, procFunc, lightVIEventTypesId...)
 		if err != nil {
 			return err
 		}
 	} else {
-		err := vsc.evntMgr.Events(tmpCtx, finalObjRefLstBase, 10, false, false, procFunc)
+		err := vsc.evntMgr.Events(tmpCtx, finalObjRefLstBase, 10, false, true, procFunc)
 		if err != nil {
 			return err
 		}
 	}
-	//
-}
-
-func postProcessReceivedEventMsgAndSave(recvEvnts []types.BaseEvent, outputPath string) error {
-	event.Sort(recvEvnts)
-	log.Infoln("Note: Current")
+	log.Debugln("requesting all related events successfully finished. start post-processing.")
+	// do post processing like sorting, printing, saving stuffs
+	wdir, _ := os.Getwd()
+	wDstFilePath := filepath.Join(wdir, "vi-events-"+strconv.FormatInt(time.Now().UnixNano(), 10)+".csv")
+	// create output file
+	outputFd, err := os.Create(wDstFilePath)
+	if err != nil {
+		return err
+	}
+	defer outputFd.Close()
+	defer outputFd.Sync()
+	log.Debugln("VI-Events CSV file for outputting has been created.")
+	// create csv writer
+	// static headers
+	var outputCSVWr = csv.NewWriter(outputFd)
+	defer outputCSVWr.Flush()
+	// write header first
+	outputCSVWr.Write([]string{"Timestamp", "ID", "Level", "Event Type", "Message"})
+	SortWrappedEvents(resFinalLst)
+	for _, v := range resFinalLst {
+		err := outputCSVWr.Write(v.CSVString())
+		if err != nil {
+			log.Errorln("write event to csv failed: ", err)
+		}
+	}
+	return nil
 }
 
 func (vsc *vSphereClient) GetEventMaxAge() error {
+	return nil
+}
 
+type wrappedViEvent struct {
+	SubjectObj    string //from source object
+	CreatedTime   time.Time
+	CategoryLevel string
+	Message       string
+	EventID       int32
+	EventType     string
+	bEvent        types.BaseEvent
+}
+
+func (wvie *wrappedViEvent) CSVString() []string {
+	// if this is a TaskEvent gather a little more information
+	if tmpTaskEvent, ok := wvie.bEvent.(*types.TaskEvent); ok {
+		// some tasks won't have this information, so just use the event message
+		if tmpTaskEvent.Info.Entity != nil {
+			wvie.Message = fmt.Sprintf("%s (target=%s - %s)", wvie.Message, tmpTaskEvent.Info.Entity.Type,
+				tmpTaskEvent.Info.EntityName)
+		}
+	}
+	// "Timestamp", "ID", "Level", "Event Type", "Message"
+	return []string{strconv.FormatInt(wvie.CreatedTime.UnixNano(), 10),
+		strconv.FormatInt(int64(wvie.EventID), 10), wvie.CategoryLevel, wvie.EventType, wvie.Message}
+}
+
+type wrappedViEventList []*wrappedViEvent
+
+func (wvies wrappedViEventList) Len() int {
+	return len(wvies)
+}
+
+func (wvies wrappedViEventList) Less(i, j int) bool {
+	return wvies[i].EventID < wvies[j].EventID
+}
+
+func (wvies wrappedViEventList) Swap(i, j int) {
+	wvies[i], wvies[j] = wvies[j], wvies[i]
+}
+
+func SortWrappedEvents(wvies wrappedViEventList) {
+	sort.Sort(wvies)
 }
