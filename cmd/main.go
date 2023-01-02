@@ -185,10 +185,9 @@ func main() {
 			case "vi_events":
 				subcmds.RetrieveVIEvents()
 				continue
-			case "support_bundle":
-				subcmds.RetrieveSupportBundle()
-				continue
 			case "basic_info":
+				fallthrough
+			case "support_bundle":
 				fallthrough
 			default:
 				fmt.Println("not implemented.")

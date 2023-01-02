@@ -3,16 +3,14 @@ package vsphere_api
 import (
 	"context"
 	log "github.com/sirupsen/logrus"
-	"github.com/vmware/govmomi/find"
 )
 
 func (vsc *vSphereClient) ListEsxiHost() error {
 	tmpctx := context.TODO()
-	if !vsc.IsLoggedIn() {
+	if !vsc.IsLoggedIn() || !vsc.postInitDone {
 		return ErrSessionInvalid
 	}
-	curFinder := find.NewFinder(vsc.vmwSoapClient, true)
-	elemRes, err := curFinder.ManagedObjectListChildren(tmpctx, "/", "HostSystem")
+	elemRes, err := vsc.curFinder.ManagedObjectListChildren(tmpctx, "/", "HostSystem")
 	if err != nil {
 		return err
 	}
@@ -27,11 +25,10 @@ func (vsc *vSphereClient) ListEsxiHost() error {
 
 func (vsc *vSphereClient) ListDataCenter() error {
 	tmpctx := context.TODO()
-	if !vsc.IsLoggedIn() {
+	if !vsc.IsLoggedIn() || !vsc.postInitDone {
 		return ErrSessionInvalid
 	}
-	curFinder := find.NewFinder(vsc.vmwSoapClient, true)
-	dcLst, err := curFinder.ManagedObjectListChildren(tmpctx, "/", "DataCenter")
+	dcLst, err := vsc.curFinder.ManagedObjectListChildren(tmpctx, "/", "DataCenter")
 	if err != nil {
 		return err
 	}
