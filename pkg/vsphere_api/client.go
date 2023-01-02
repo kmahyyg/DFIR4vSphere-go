@@ -91,6 +91,10 @@ func (vsc *vSphereClient) NewClient() error {
 	return nil
 }
 
+func (vsc *vSphereClient) GetSOAPClient() *vim25.Client {
+	return vsc.vmwSoapClient
+}
+
 // LoginViaPassword will try to log in using credentials, if Token is required, you may query STS, then
 // issue ticket or token yourself.
 func (vsc *vSphereClient) LoginViaPassword() (err error) {
