@@ -5,7 +5,6 @@ import (
 	"errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/vmware/govmomi/event"
-	"github.com/vmware/govmomi/find"
 	"github.com/vmware/govmomi/object"
 	"github.com/vmware/govmomi/session/cache"
 	"github.com/vmware/govmomi/vapi/rest"
@@ -33,7 +32,6 @@ type vSphereClient struct {
 	httpProxy *url.URL
 
 	// static status mark
-	postInitDone    bool
 	serverIsVC      bool
 	curSessLoggedIn bool
 
@@ -42,8 +40,8 @@ type vSphereClient struct {
 	// use a session cache
 	curSession *cache.Session
 
-	// finder instance in inventory
-	curFinder *find.Finder
+	// DO NOT BUILD FINDER HERE, AS IT MAY STORE LAST REQUEST INFORMATION.
+
 	// event manager
 	evntMgr    *event.Manager
 	evntMaxAge uint32
@@ -114,22 +112,6 @@ func (vsc *vSphereClient) LoginViaPassword() (err error) {
 		vsc.curSessLoggedIn = true
 	}
 	log.Debugln("login successfully finished.")
-	err = vsc.postLoginSuccessInit()
-	if err != nil {
-		return err
-	}
-	log.Debugln("after-login-success initialization complete without error.")
-	return nil
-}
-
-// postLoginSuccessInit initialize other internal manager or client for further usage
-func (vsc *vSphereClient) postLoginSuccessInit() error {
-	if !vsc.IsLoggedIn() {
-		return ErrSessionInvalid
-	}
-	// object finder via LDAP over SOAP
-	vsc.curFinder = find.NewFinder(vsc.vmwSoapClient, true)
-	vsc.postInitDone = true
 	return nil
 }
 
@@ -145,7 +127,7 @@ func (vsc *vSphereClient) Logout() (err error) {
 
 // ShowAPIVersion will be used to test connection is working or not
 func (vsc *vSphereClient) ShowAPIVersion() (err error) {
-	if !vsc.IsLoggedIn() || !vsc.postInitDone {
+	if !vsc.IsLoggedIn() {
 		err = ErrSessionInvalid
 		return
 	}
@@ -157,7 +139,7 @@ func (vsc *vSphereClient) ShowAPIVersion() (err error) {
 
 // IsVCenter will return if this is NOT a standalone ESXi Host
 func (vsc *vSphereClient) IsVCenter() bool {
-	if !vsc.IsLoggedIn() || !vsc.postInitDone {
+	if !vsc.IsLoggedIn() {
 		return false
 	}
 	return vsc.serverIsVC
@@ -170,7 +152,7 @@ func (vsc *vSphereClient) IsLoggedIn() bool {
 
 // SetCtxData is used to passing volatile data in the same session
 func (vsc *vSphereClient) SetCtxData(key string, val interface{}) {
-	if vsc.dataCtx == nil || !vsc.postInitDone {
+	if vsc.dataCtx == nil {
 		log.Fatalln("context not initialized in vsc.")
 	}
 	vsc.mu.Lock()
@@ -184,7 +166,7 @@ func (vsc *vSphereClient) SetCtxData(key string, val interface{}) {
 
 // GetCtxData is used to reading volatile data in the same session
 func (vsc *vSphereClient) GetCtxData(key string) (interface{}, error) {
-	if vsc.dataCtx == nil || !vsc.postInitDone {
+	if vsc.dataCtx == nil {
 		log.Fatalln("context not initialized in vsc.")
 	}
 	vsc.mu.RLock()

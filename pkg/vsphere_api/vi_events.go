@@ -48,7 +48,7 @@ var (
 )
 
 func (vsc *vSphereClient) NewEventManager() error {
-	if !vsc.postInitDone || !vsc.curSessLoggedIn || !vsc.IsVCenter() {
+	if !vsc.curSessLoggedIn || !vsc.IsVCenter() {
 		return ErrSessionInvalid
 	}
 	vsc.evntMgr = event.NewManager(vsc.vmwSoapClient)
@@ -58,7 +58,7 @@ func (vsc *vSphereClient) NewEventManager() error {
 func (vsc *vSphereClient) GetEventsFromMgr(lightMode bool, dcList []types.ManagedObjectReference) error {
 	// init
 	resFinalLst := make([]*wrappedViEvent, 0)
-	if vsc.evntMgr == nil || !vsc.IsVCenter() || !vsc.postInitDone {
+	if vsc.evntMgr == nil || !vsc.IsVCenter() {
 		return ErrPrerequisitesNotSatisfied
 	}
 	tmpCtx := context.Background()
