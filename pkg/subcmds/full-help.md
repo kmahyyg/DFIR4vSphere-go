@@ -29,7 +29,7 @@ Extract VI events from vCenter. If connected server is not vCenter, throw unsupp
 Program will ask you which ESXi host and VCSA you want to collect all VI events. If you choose `light_mode`, only the
 following listed types of events will be collected. Output to CSV file.
 
-Output file: `VIEvents_<Host IP>_<Unix Timestamp>.csv`
+Output file: `VIEvents_<Unix Timestamp>.csv`
 
 Params: `(light_mode=bool) (selected_host=esxi_hostname1|esxi_hostname2)`
 

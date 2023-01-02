@@ -6,7 +6,6 @@ import (
 	"github.com/kmahyyg/DFIR4vSphere-go/pkg/vsphere_api"
 	log "github.com/sirupsen/logrus"
 	"github.com/vmware/govmomi/find"
-	"github.com/vmware/govmomi/list"
 	"github.com/vmware/govmomi/vim25/types"
 )
 
@@ -87,7 +86,7 @@ func RetrieveVIEvents() {
 	// append selected data center to list, note: careful with empty selection
 	if len(survAns.DCList) != 0 {
 		for _, v := range survAns.DCList {
-			selectedDC = append(selectedDC, (allDC.([]list.Element)[v]).Object.Reference())
+			selectedDC = append(selectedDC, (allDC.([]types.ManagedObjectReference)[v]))
 		}
 	}
 	log.Infoln("user selected datacenter list length: ", len(selectedDC))

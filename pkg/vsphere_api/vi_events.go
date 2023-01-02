@@ -70,7 +70,7 @@ func (vsc *vSphereClient) GetEventsFromMgr(lightMode bool, dcList []types.Manage
 	log.Infoln("Getting vCenter Advanced Config: event.MaxAge finished successfully.")
 	// build filter and callback function
 	procFunc := func(ref types.ManagedObjectReference, events []types.BaseEvent) error {
-		log.Debugf("inline-procFunc: ref: %v , events: %v", ref, events)
+		log.Debugf("inline-procFunc: ref: %v , events: %s", ref, events)
 		// filter on base and recursively
 		qFilter := &types.EventFilterSpec{
 			Entity: &types.EventFilterSpecByEntity{
@@ -85,13 +85,15 @@ func (vsc *vSphereClient) GetEventsFromMgr(lightMode bool, dcList []types.Manage
 		// this function is used to query detailed information
 		qEvnt, qErr := vsc.evntMgr.QueryEvents(tmpCtx, *qFilter)
 		if qErr != nil {
-			return qErr
+			log.Errorln("inline-func: queryEvents err: ", qErr)
+			return nil
 		}
 		log.Debugln("inline-procFunc - QueryEvents: finished with no err.")
 		for i := range qEvnt {
 			nEvntCate, err := vsc.evntMgr.EventCategory(tmpCtx, qEvnt[i])
 			if err != nil {
-				log.Errorln("retrieving specific event log level unsuccessful.")
+				log.Errorln("retrieving specific event log level unsuccessful. err: ", err)
+				continue
 			}
 			nEvnt := qEvnt[i].GetEvent()
 			// wrap into struct and
@@ -116,22 +118,28 @@ func (vsc *vSphereClient) GetEventsFromMgr(lightMode bool, dcList []types.Manage
 	} else {
 		finalObjRefLstBase = dcList
 	}
-	//
+	log.Debugln("procFunc successfully defined, root object ref set, now requesting...")
+	//TODO: verify event existence by checking object
+	// github.com/vmware/govmomi@v0.30.0/govc/object/find.go:385
+
 	if lightMode {
-		err := vsc.evntMgr.Events(tmpCtx, finalObjRefLstBase, 10, false, true, procFunc, lightVIEventTypesId...)
+		err := vsc.evntMgr.Events(tmpCtx, finalObjRefLstBase, 50, false, true, procFunc, lightVIEventTypesId...)
 		if err != nil {
+			log.Errorln("Events() call failed, lite mode: err: ", err)
 			return err
 		}
 	} else {
-		err := vsc.evntMgr.Events(tmpCtx, finalObjRefLstBase, 10, false, true, procFunc)
+		//TODO: this may only retrieve 50 events with no reason, might involved in callback_fn() race condition
+		err := vsc.evntMgr.Events(tmpCtx, finalObjRefLstBase, 50, false, true, procFunc)
 		if err != nil {
+			log.Errorln("Events() call failed, err: ", err)
 			return err
 		}
 	}
 	log.Debugln("requesting all related events successfully finished. start post-processing.")
 	// do post processing like sorting, printing, saving stuffs
 	wdir, _ := os.Getwd()
-	wDstFilePath := filepath.Join(wdir, "vi-events-"+strconv.FormatInt(time.Now().Unix(), 10)+".csv")
+	wDstFilePath := filepath.Join(wdir, "VIEvents_"+strconv.FormatInt(time.Now().Unix(), 10)+".csv")
 	// create output file
 	outputFd, err := os.Create(wDstFilePath)
 	if err != nil {

@@ -46,7 +46,9 @@ func (vsc *vSphereClient) ListEsxiHost() error {
 		log.Warn("Retrieved data length of DataCenter List is zero.")
 	}
 	log.Debugf("Retrieved ESXi Host: %v", esxHostLst)
-	//esxHostLst, type=([]types.ManagedObjectReference)
+	//TODO: we should check object existence after finder context destroyed, then
+	// save as list.Element only.
+	//esxHostLst, type=([]list.Element)
 	vsc.SetCtxData("esxiHostList", esxHostLst)
 	return nil
 }
@@ -75,7 +77,11 @@ func (vsc *vSphereClient) ListDataCenter() error {
 		log.Warn("Retrieved data length of DataCenter List is zero.")
 	}
 	log.Debugf("Retrieved DataCenter: %v", dcLst)
-	// dcList, type=([]types.ManagedObjectReference)
+	//TODO: we should check object existence after finder context destroyed, then
+	// save as list.Element only.
+	// this will help for preventing error in other methods.
+	//  github.com/vmware/govmomi@v0.30.0/govc/object/find.go:389
+	// dcLst, type=([]list.Element)
 	// list.Element can be converted to specific object type easily. However, reverse operation is not supported.
 	vsc.SetCtxData("dcList", dcLst)
 	return nil
