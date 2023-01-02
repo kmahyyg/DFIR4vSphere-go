@@ -1,9 +1,11 @@
 package subcmds
 
 import (
+	"context"
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/kmahyyg/DFIR4vSphere-go/pkg/vsphere_api"
 	log "github.com/sirupsen/logrus"
+	"github.com/vmware/govmomi/find"
 	"github.com/vmware/govmomi/list"
 	"github.com/vmware/govmomi/vim25/types"
 )
@@ -25,6 +27,7 @@ func RetrieveVIEvents() {
 	err := vsphere_api.GlobalClient.ListDataCenter()
 	if err != nil {
 		log.Errorln("Cannot list datacenter from server: ", err)
+		return
 	}
 	log.Infoln("datacenter list successfully retrieved.")
 	allDC, err := vsphere_api.GlobalClient.GetCtxData("dcList")
@@ -32,14 +35,23 @@ func RetrieveVIEvents() {
 		log.Errorln("Cannot get cached DC List: ", err)
 		return
 	}
-	dcSelectOptions := func() []string {
-		tmpDcLst := allDC.([]list.Element)
+	dcSelectOptions, err := func() ([]string, error) {
+		tmpDcLst := allDC.([]types.ManagedObjectReference)
 		res := make([]string, len(tmpDcLst))
 		for i := range tmpDcLst {
-			res[i] = tmpDcLst[i].Path
+			tmpCtx := context.Background()
+			iPath, err := find.InventoryPath(tmpCtx, vsphere_api.GlobalClient.GetSOAPClient(), tmpDcLst[i].Reference())
+			if err != nil {
+				return nil, err
+			}
+			res[i] = iPath
 		}
-		return res
+		return res, nil
 	}()
+	if err != nil {
+		log.Errorln("build cached dc selections failed: ", err)
+		return
+	}
 
 	survAns := &viEventsQuery{
 		LightMode: false,
