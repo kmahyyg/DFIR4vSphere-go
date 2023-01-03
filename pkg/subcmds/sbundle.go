@@ -43,7 +43,7 @@ func RetrieveSupportBundle() {
 		Options:  esxHostSelections,
 		PageSize: 10,
 	}
-	err = survey.AskOne(qsEsxHosts, ansEsxHosts, survey.WithValidator(survey.Required))
+	err = survey.AskOne(qsEsxHosts, &ansEsxHosts, survey.WithValidator(survey.Required))
 	if err != nil {
 		log.Errorln("user answer err: ", err)
 	}

@@ -69,45 +69,24 @@ func (vsc *vSphereClient) GetEventsFromMgr(lightMode bool, dcList []types.Manage
 	}
 	log.Infoln("Getting vCenter Advanced Config: event.MaxAge finished successfully.")
 	// build filter and callback function
-	procFunc := func(ref types.ManagedObjectReference, events []types.BaseEvent) error {
-		log.Debugf("inline-procFunc: ref: %v , events: %s", ref, events)
-		// filter on base and recursively
-		fullDbgMsgsEnabled := false
-		qFilter := &types.EventFilterSpec{
-			Entity: &types.EventFilterSpecByEntity{
-				Entity:    ref,
-				Recursion: types.EventFilterSpecRecursionOptionAll,
-			},
-			DisableFullMessage: &fullDbgMsgsEnabled,
-			MaxCount:           2147483647,
-		}
-		// light mode switch
-		if lightMode {
-			qFilter.EventTypeId = lightVIEventTypesId
-		}
-		// this function is used to query detailed information
-		qEvnt, qErr := vsc.evntMgr.QueryEvents(tmpCtx, *qFilter)
-		if qErr != nil {
-			log.Errorln("inline-func: queryEvents err: ", qErr)
-			return nil
-		}
-		log.Debugln("inline-procFunc - QueryEvents: finished with no err.")
-		for i := range qEvnt {
-			nEvntCate, err := vsc.evntMgr.EventCategory(tmpCtx, qEvnt[i])
+	procFunc := func(srcObj types.ManagedObjectReference, cPageEvnts []types.BaseEvent) error {
+		log.Debugf("inline-procFunc: srcObj: %v , len(cPageEvnts): %d", srcObj, len(cPageEvnts))
+		for i := range cPageEvnts {
+			nEvntCate, err := vsc.evntMgr.EventCategory(tmpCtx, cPageEvnts[i])
 			if err != nil {
 				log.Errorln("retrieving specific event log level unsuccessful. err: ", err)
 				continue
 			}
-			nEvnt := qEvnt[i].GetEvent()
+			nEvnt := cPageEvnts[i].GetEvent()
 			// wrap into struct and
 			wrapNEvnt := &wrappedViEvent{
-				SubjectObj:    ref.String(),
+				SubjectObj:    srcObj.String(),
 				CreatedTime:   nEvnt.CreatedTime,
 				CategoryLevel: nEvntCate,
 				Message:       strings.TrimSpace(nEvnt.FullFormattedMessage),
 				EventID:       nEvnt.Key,
 				EventType:     reflect.TypeOf(nEvnt).Elem().Name(),
-				bEvent:        qEvnt[i],
+				bEvent:        cPageEvnts[i],
 			}
 			resFinalLst = append(resFinalLst, wrapNEvnt)
 		}
@@ -122,17 +101,15 @@ func (vsc *vSphereClient) GetEventsFromMgr(lightMode bool, dcList []types.Manage
 		finalObjRefLstBase = dcList
 	}
 	log.Debugln("procFunc successfully defined, root object ref set, now requesting...")
-	//TODO: verify event existence by checking object
-	// github.com/vmware/govmomi@v0.30.0/govc/object/find.go:385
+	// the max page size is 1000, cannot be bigger
 	if lightMode {
-		err := vsc.evntMgr.Events(tmpCtx, finalObjRefLstBase, 50, false, true, procFunc, lightVIEventTypesId...)
+		err := vsc.evntMgr.Events(tmpCtx, finalObjRefLstBase, 1000, false, true, procFunc, lightVIEventTypesId...)
 		if err != nil {
 			log.Errorln("Events() call failed, lite mode: err: ", err)
 			return err
 		}
 	} else {
-		//TODO: this may only retrieve 50 events with no reason, might involved in callback_fn() race condition
-		err := vsc.evntMgr.Events(tmpCtx, finalObjRefLstBase, 50, false, true, procFunc)
+		err := vsc.evntMgr.Events(tmpCtx, finalObjRefLstBase, 1000, false, true, procFunc)
 		if err != nil {
 			log.Errorln("Events() call failed, err: ", err)
 			return err

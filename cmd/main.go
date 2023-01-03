@@ -20,7 +20,7 @@ import (
 func init() {
 	// create log file
 	var err error
-	common.LogFileFD, err = os.Create("working.log")
+	common.LogFileFD, err = os.Create("working.log.json")
 	if err != nil {
 		panic(err)
 	}
@@ -187,7 +187,7 @@ func main() {
 				continue
 			case "support_bundle":
 				subcmds.RetrieveSupportBundle()
-				return
+				continue
 			case "basic_info":
 				fallthrough
 			default:
