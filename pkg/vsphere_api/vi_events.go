@@ -101,7 +101,9 @@ func (vsc *vSphereClient) GetEventsFromMgr(lightMode bool, dcList []types.Manage
 		finalObjRefLstBase = dcList
 	}
 	log.Debugln("procFunc successfully defined, root object ref set, now requesting...")
-	// the max page size is 1000, cannot be bigger
+	// the max page size is 1000, cannot be bigger,
+	// > From VMWare Document:
+	// > This parameter is ignored when the Start and Finish parameters are specified and all events from the specified period are retrieved.
 	if lightMode {
 		err := vsc.evntMgr.Events(tmpCtx, finalObjRefLstBase, 1000, false, true, procFunc, lightVIEventTypesId...)
 		if err != nil {
