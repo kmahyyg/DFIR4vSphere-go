@@ -6,6 +6,7 @@ import (
 	"github.com/kmahyyg/DFIR4vSphere-go/pkg/vsphere_api"
 	log "github.com/sirupsen/logrus"
 	"github.com/vmware/govmomi/find"
+	"github.com/vmware/govmomi/list"
 	"github.com/vmware/govmomi/vim25/types"
 )
 
@@ -35,15 +36,15 @@ func RetrieveVIEvents() {
 		return
 	}
 	dcSelectOptions, err := func() ([]string, error) {
-		tmpDcLst := allDC.([]types.ManagedObjectReference)
+		tmpDcLst := allDC.([]list.Element)
 		res := make([]string, len(tmpDcLst))
 		for i := range tmpDcLst {
 			tmpCtx := context.Background()
-			iPath, err := find.InventoryPath(tmpCtx, vsphere_api.GlobalClient.GetSOAPClient(), tmpDcLst[i].Reference())
+			iIPath, err := find.InventoryPath(tmpCtx, vsphere_api.GlobalClient.GetSOAPClient(), tmpDcLst[i].Object.Reference())
 			if err != nil {
 				return nil, err
 			}
-			res[i] = iPath
+			res[i] = iIPath
 		}
 		return res, nil
 	}()
@@ -86,7 +87,7 @@ func RetrieveVIEvents() {
 	// append selected data center to list, note: careful with empty selection
 	if len(survAns.DCList) != 0 {
 		for _, v := range survAns.DCList {
-			selectedDC = append(selectedDC, (allDC.([]types.ManagedObjectReference)[v]))
+			selectedDC = append(selectedDC, allDC.([]list.Element)[v].Object.Reference())
 		}
 	}
 	log.Infoln("user selected datacenter list length: ", len(selectedDC))
@@ -104,4 +105,5 @@ func RetrieveVIEvents() {
 		return
 	}
 	log.Infoln("successfully finished retrieve_vi_events.")
+	return
 }

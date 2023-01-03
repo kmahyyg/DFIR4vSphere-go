@@ -72,11 +72,14 @@ func (vsc *vSphereClient) GetEventsFromMgr(lightMode bool, dcList []types.Manage
 	procFunc := func(ref types.ManagedObjectReference, events []types.BaseEvent) error {
 		log.Debugf("inline-procFunc: ref: %v , events: %s", ref, events)
 		// filter on base and recursively
+		fullDbgMsgsEnabled := false
 		qFilter := &types.EventFilterSpec{
 			Entity: &types.EventFilterSpecByEntity{
 				Entity:    ref,
 				Recursion: types.EventFilterSpecRecursionOptionAll,
 			},
+			DisableFullMessage: &fullDbgMsgsEnabled,
+			MaxCount:           2147483647,
 		}
 		// light mode switch
 		if lightMode {
@@ -121,7 +124,6 @@ func (vsc *vSphereClient) GetEventsFromMgr(lightMode bool, dcList []types.Manage
 	log.Debugln("procFunc successfully defined, root object ref set, now requesting...")
 	//TODO: verify event existence by checking object
 	// github.com/vmware/govmomi@v0.30.0/govc/object/find.go:385
-
 	if lightMode {
 		err := vsc.evntMgr.Events(tmpCtx, finalObjRefLstBase, 50, false, true, procFunc, lightVIEventTypesId...)
 		if err != nil {
