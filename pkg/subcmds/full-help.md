@@ -66,7 +66,7 @@ Load Event from Event Manager. If lite mode, using Event Type ID for loop.
 
 ## basic_info
 
-Output: `BasicInfo_<Host IP>_<Unix Timestamp>.csv`
+Output: `BasicInfo_<Unix Timestamp>.csv`
 
 Will collect the following information:
 
