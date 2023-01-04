@@ -243,12 +243,11 @@ func (vsc *vSphereClient) GetEventMaxAge() error {
 	if err != nil {
 		return err
 	}
-	res := -1
 	for i := range opts {
 		sOpt := opts[i].GetOptionValue()
 		if sOpt.Key == "event.maxAge" {
-			res = sOpt.GetOptionValue().Value.(int)
-			vsc.evntMaxAge = res
+			resTmp := sOpt.GetOptionValue().Value.(int32)
+			vsc.evntMaxAge = int(resTmp)
 		}
 		log.Infof("VCSA Option: %s = %v ", sOpt.Key, sOpt.GetOptionValue().Value)
 	}
