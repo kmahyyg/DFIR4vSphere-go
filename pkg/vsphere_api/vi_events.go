@@ -6,8 +6,8 @@ import (
 	"errors"
 	"fmt"
 	log "github.com/sirupsen/logrus"
-	"github.com/vmware/govmomi/event"
 	"github.com/vmware/govmomi/object"
+	"github.com/vmware/govmomi/vim25/methods"
 	"github.com/vmware/govmomi/vim25/types"
 	"os"
 	"path/filepath"
@@ -15,10 +15,12 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
 var (
+	ErrDatetimeUnknown           = errors.New("unknown error when try to build time range")
 	ErrPrerequisitesNotSatisfied = errors.New("dependencies not initialized")
 )
 
@@ -47,12 +49,9 @@ var (
 		"esx.audit.esximage.hostacceptance.changed", "esx.audit.esximage.vib.remove.successful"}
 )
 
-func (vsc *vSphereClient) NewEventManager() error {
-	if !vsc.postInitDone || !vsc.curSessLoggedIn || !vsc.IsVCenter() {
-		return ErrSessionInvalid
-	}
-	vsc.evntMgr = event.NewManager(vsc.vmwSoapClient)
-	return nil
+type wrappedCallbackInput struct {
+	Events  []types.BaseEvent
+	BaseObj types.ManagedObjectReference
 }
 
 func (vsc *vSphereClient) GetEventsFromMgr(lightMode bool, dcList []types.ManagedObjectReference) error {
@@ -61,15 +60,23 @@ func (vsc *vSphereClient) GetEventsFromMgr(lightMode bool, dcList []types.Manage
 	if vsc.evntMgr == nil || !vsc.IsVCenter() || !vsc.postInitDone {
 		return ErrPrerequisitesNotSatisfied
 	}
-	tmpCtx := context.Background()
 	// get max age
 	err := vsc.GetEventMaxAge()
 	if err != nil {
 		return err
 	}
+	if vsc.evntMaxAge <= 0 {
+		return ErrDatetimeUnknown
+	}
 	log.Infoln("Getting vCenter Advanced Config: event.MaxAge finished successfully.")
+
+	// go coroutine-processing
+	sPageChan := make(chan wrappedCallbackInput, 256)
+	wgEventsProc := &sync.WaitGroup{}
+	sCallBackFnDone := make(chan struct{}, 0)
 	// build filter and callback function
-	procFunc := func(srcObj types.ManagedObjectReference, cPageEvnts []types.BaseEvent) error {
+	pageCallBackFn := func(srcObj types.ManagedObjectReference, cPageEvnts []types.BaseEvent) error {
+		tmpCtx := context.Background()
 		log.Debugf("inline-procFunc: srcObj: %v , len(cPageEvnts): %d", srcObj, len(cPageEvnts))
 		for i := range cPageEvnts {
 			nEvntCate, err := vsc.evntMgr.EventCategory(tmpCtx, cPageEvnts[i])
@@ -92,29 +99,110 @@ func (vsc *vSphereClient) GetEventsFromMgr(lightMode bool, dcList []types.Manage
 		}
 		return nil
 	}
+	go func() {
+		for {
+			sWcbIpt, evntHasNext := <-sPageChan
+			if !evntHasNext {
+				break
+			}
+			err := pageCallBackFn(sWcbIpt.BaseObj, sWcbIpt.Events)
+			if err != nil {
+				log.Errorln("recv-pagecallback-proc, err: ", err)
+				continue
+			}
+		}
+		sCallBackFnDone <- struct{}{}
+		close(sCallBackFnDone)
+	}()
+
+	// collector builder function
+	collectorBuilderFn := func(baseRef types.ManagedObjectReference, lightMode bool) (collectorFilter types.EventFilterSpec, err error) {
+		tmpCtx := context.Background()
+		// specify time range must from today to maxAge days ago
+		endUntil, err := methods.GetCurrentTime(tmpCtx, vsc.vmwSoapClient)
+		if err != nil {
+			return types.EventFilterSpec{}, err
+		}
+		startFrom := endUntil.AddDate(0, 0, -vsc.evntMaxAge)
+		// create filter spec
+		collectorFilter = types.EventFilterSpec{
+			Entity: &types.EventFilterSpecByEntity{
+				Entity:    baseRef,
+				Recursion: types.EventFilterSpecRecursionOptionAll,
+			},
+			Time: &types.EventFilterSpecByTime{
+				BeginTime: &startFrom,
+				EndTime:   endUntil,
+			},
+		}
+		if lightMode {
+			collectorFilter.EventTypeId = lightVIEventTypesId
+		}
+		return collectorFilter, nil
+	}
+	collectorInWorkFn := func(fRefBase types.ManagedObjectReference, filterSpec types.EventFilterSpec) {
+		defer wgEventsProc.Done()
+		log.Debugln("root object ref retrieved from param, now requesting...")
+		tmpCtx := context.Background()
+		collector, err := vsc.evntMgr.CreateCollectorForEvents(tmpCtx, filterSpec)
+		if err != nil {
+			log.Errorln("events collector creator func called got errors, err: ", err)
+			return
+		}
+		defer collector.Destroy(tmpCtx)
+		log.Infoln("collector-in-work, collector created from spec using builder.")
+		for {
+			events, err := collector.ReadNextEvents(tmpCtx, 500)
+			if err != nil {
+				log.Errorln("readNextNEvents: ", err)
+			}
+			log.Infof("readNextNEvents: currently %d events read.", len(events))
+			if len(events) == 0 {
+				break
+			}
+			sPageChan <- wrappedCallbackInput{
+				Events:  events,
+				BaseObj: fRefBase,
+			}
+			log.Infoln("sent read events out for callback fn processing.")
+		}
+	}
+	log.Debugln("procFunc successfully defined, building base ref...")
+
 	// if selected nothing, use root folder. Multiple events only exists on root.
-	// so, it is recommended do not select specific datacenter unless you are required to do so.
-	var finalObjRefLstBase []types.ManagedObjectReference
 	if len(dcList) == 0 {
-		finalObjRefLstBase = append(finalObjRefLstBase, vsc.vmwSoapClient.ServiceContent.RootFolder)
-	} else {
-		finalObjRefLstBase = dcList
-	}
-	log.Debugln("procFunc successfully defined, root object ref set, now requesting...")
-	// the max page size is 1000, cannot be bigger
-	if lightMode {
-		err := vsc.evntMgr.Events(tmpCtx, finalObjRefLstBase, 1000, false, true, procFunc, lightVIEventTypesId...)
+		// so, it is recommended do not select specific datacenter unless you are required to do so.
+		fRefBase := vsc.vmwSoapClient.ServiceContent.RootFolder
+		collectorFilter, err := collectorBuilderFn(fRefBase, lightMode)
 		if err != nil {
-			log.Errorln("Events() call failed, lite mode: err: ", err)
+			log.Debugln("collector builder func called got errors.")
 			return err
 		}
+		log.Debugln("collector filter spec set up.")
+		wgEventsProc.Add(1)
+		collectorInWorkFn(fRefBase, collectorFilter)
 	} else {
-		err := vsc.evntMgr.Events(tmpCtx, finalObjRefLstBase, 1000, false, true, procFunc)
-		if err != nil {
-			log.Errorln("Events() call failed, err: ", err)
-			return err
+		for _, vSingleDC := range dcList {
+			fRefBase := vSingleDC
+			collectorSFilter, err := collectorBuilderFn(fRefBase, lightMode)
+			if err != nil {
+				log.Debugln("collector builder func called got errors.")
+				continue
+			}
+			log.Debugln("collector filter spec set up.")
+			wgEventsProc.Add(1)
+			collectorInWorkFn(fRefBase, collectorSFilter)
 		}
 	}
+	// the max single page size is 1000, cannot be bigger,
+	// > From VMWare Document:
+	// > This parameter is ignored when the Start and Finish parameters are specified and all events from the specified period are retrieved.
+	log.Debugln("collector created, wait for jobs getting done.")
+	wgEventsProc.Wait()
+	// all processor and collector successfully exited, close receiver chan
+	close(sPageChan)
+	// wait for callback done
+	<-sCallBackFnDone
 	log.Debugln("requesting all related events successfully finished. start post-processing.")
 	// do post processing like sorting, printing, saving stuffs
 	wdir, _ := os.Getwd()
@@ -157,6 +245,10 @@ func (vsc *vSphereClient) GetEventMaxAge() error {
 	}
 	for i := range opts {
 		sOpt := opts[i].GetOptionValue()
+		if sOpt.Key == "event.maxAge" {
+			resTmp := sOpt.GetOptionValue().Value.(int32)
+			vsc.evntMaxAge = int(resTmp)
+		}
 		log.Infof("VCSA Option: %s = %v ", sOpt.Key, sOpt.GetOptionValue().Value)
 	}
 	return nil

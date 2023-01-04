@@ -150,6 +150,11 @@ func main() {
 	if err != nil {
 		log.Fatalln("Connection Check - API Version - Failed: " + err.Error())
 	}
+	// check current server timestamp
+	err = vsphere_api.GlobalClient.CheckTimeSkew()
+	if err != nil {
+		log.Fatalln("TimeSync Check - Failed: ", err)
+	}
 	// handle signal
 	var sigChan = make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt, os.Kill)

@@ -114,3 +114,4 @@ go.work
 # Generated data
 bin/
 
+.DS_Store

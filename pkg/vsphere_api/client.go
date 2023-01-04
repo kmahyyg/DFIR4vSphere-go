@@ -10,10 +10,12 @@ import (
 	"github.com/vmware/govmomi/session/cache"
 	"github.com/vmware/govmomi/vapi/rest"
 	"github.com/vmware/govmomi/vim25"
+	"github.com/vmware/govmomi/vim25/methods"
 	"github.com/vmware/govmomi/vim25/soap"
 	"net/http"
 	"net/url"
 	"sync"
+	"time"
 )
 
 var (
@@ -21,6 +23,7 @@ var (
 )
 
 var (
+	ErrTimeNotSynced  = errors.New("server time is not in sync with client")
 	ErrSessionInvalid = errors.New("current client does NOT have active logged-in session")
 	ErrDataInCtx404   = errors.New("data in context not exist")
 )
@@ -46,7 +49,7 @@ type vSphereClient struct {
 	curFinder *find.Finder
 	// event manager
 	evntMgr    *event.Manager
-	evntMaxAge uint32
+	evntMaxAge int
 	// vcsa option manager
 	vcsaOptionMgr *object.OptionManager
 
@@ -133,6 +136,9 @@ func (vsc *vSphereClient) postLoginSuccessInit() error {
 	}
 	// object finder via LDAP over SOAP
 	vsc.curFinder = find.NewFinder(vsc.vmwSoapClient, true)
+	// other manager
+	vsc.evntMgr = event.NewManager(vsc.vmwSoapClient)
+	vsc.evntMaxAge = -1
 	vsc.postInitDone = true
 	return nil
 }
@@ -156,6 +162,35 @@ func (vsc *vSphereClient) ShowAPIVersion() (err error) {
 	vsc.serverIsVC = vsc.vmwSoapClient.IsVC()
 	log.Infof("Server Is vCenter: %v - version %s", vsc.serverIsVC,
 		vsc.vmwSoapClient.ServiceContent.About.Version)
+	return nil
+}
+
+// CheckTimeSkew will retrieve system timestamp and check if delta < 30 seconds
+// if time is not synced, further action might be inaccurate
+func (vsc *vSphereClient) CheckTimeSkew() (err error) {
+	if !vsc.IsLoggedIn() {
+		err = ErrSessionInvalid
+		return
+	}
+	tmpCtx := context.Background()
+	clientNow := time.Now()
+	serverNow, err := methods.GetCurrentTime(tmpCtx, vsc.vmwSoapClient)
+	if err != nil {
+		return err
+	}
+	var timeDelta time.Duration
+	if clientNow.Before(*serverNow) {
+		timeDelta = serverNow.Sub(clientNow)
+	} else {
+		timeDelta = clientNow.Sub(*serverNow)
+	}
+	skewTime := int(timeDelta.Seconds())
+	if skewTime >= 29 {
+		log.Errorf("server and client delay is: %d seconds", skewTime)
+		return ErrTimeNotSynced
+	}
+	log.Infoln("Server Current Time: ", serverNow.Format(time.RFC3339), " , While Client: ",
+		clientNow.Format(time.RFC3339))
 	return nil
 }
 
