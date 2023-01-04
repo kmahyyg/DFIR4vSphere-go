@@ -91,13 +91,6 @@ func RetrieveVIEvents() {
 		}
 	}
 	log.Infoln("user selected datacenter list length: ", len(selectedDC))
-	// create event mgr
-	err = vsphere_api.GlobalClient.NewEventManager()
-	if err != nil {
-		log.Errorln("createEventMgr err: ", err)
-		return
-	}
-	log.Infoln("event manager successfully initialized.")
 	// start collector working
 	err = vsphere_api.GlobalClient.GetEventsFromMgr(survAns.LightMode, selectedDC)
 	if err != nil {
