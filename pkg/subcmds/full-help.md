@@ -66,42 +66,42 @@ Load Event from Event Manager. If lite mode, using Event Type ID for loop.
 
 ## basic_info
 
-Output: `BasicInfo_<Unix Timestamp>.csv`
+Output: `BasicInfo_<Unix Timestamp>.json`
 
 Will collect the following information:
 
 For ESXi-standalone host:
-- Get running service status
-- Get authentication information
-- Expose ESXCli v2, and Do following:
-    - Get System Version
-    - List System Account
-    - List System Permission
-    - List System Modules
-    - List System Processes
-    - List System Certificate Store
-    - (If Version >= 7.0.2) Get System Encryption Settings
-    - (If Version >= 7.0.2) Get System Guest Store Repository
-    - (If Version >= 7.0.2) (list changed items only) List System Advanced Settings using Delta method 
-    - (If Version >= 7.0.2) (list changed items only) List System Settings Kernel List
-    - (If Version >= 7.0.2) Get System SysLog Config
-    - (If Version >= 7.0.0) Get System BaseImage Information
-    - (If Version >= 7.0.0) Get Software VIBs
-    - (If Version >= 7.0.0) Get Software Profiles
-    - (If Version >= 7.0.0) List Storage IOFilters
-    - Network interface IPs and routes
-    - Network neighbor list using ARP cache
-    - Network DNS IPs
-    - Network Connections status
-    - Network PortGroup VM Lists
-    - Network vSwitch List
+- [ ] | Get running service status
+- [ ] | Get authentication information
+- [ ] | Expose ESXCli v2, and Do following:
+    - [ ] | Get System Version
+    - [ ] | List System Account
+    - [ ] | List System Permission
+    - [ ] | List System Modules
+    - [ ] | List System Processes
+    - [ ] | List System Certificate Store
+    - [ ] | (If Version >= 7.0.2) Get System Encryption Settings
+    - [ ] | (If Version >= 7.0.2) Get System Guest Store Repository
+    - [ ] | (If Version >= 7.0.2) (list changed items only) List System Advanced Settings using Delta method 
+    - [ ] | (If Version >= 7.0.2) (list changed items only) List System Settings Kernel List
+    - [ ] | (If Version >= 7.0.2) Get System SysLog Config
+    - [ ] | (If Version >= 7.0.0) Get System BaseImage Information
+    - [ ] | (If Version >= 7.0.0) Get Software VIBs
+    - [ ] | (If Version >= 7.0.0) Get Software Profiles
+    - [ ] | (If Version >= 7.0.0) List Storage IOFilters
+    - [ ] | Network interface IPs and routes
+    - [ ] | Network neighbor list using ARP cache
+    - [ ] | Network DNS IPs
+    - [ ] | Network Connections status
+    - [ ] | Network PortGroup VM Lists
+    - [ ] | Network vSwitch List
 
 For vCenter-managed ESXi host:
 - In addition to standalone ESXi Host, will do following things:
-  - Get Connected ESXi Hosts list
-  - Get Permissions in vCenter sorted via Principal (Level: Entities@DataCenter)
-  - Get Local and SSO users
-  - Get Advanced Settings "event.maxAge" to determine last X days event to retrieve
+  - [ ] | Get Connected ESXi Hosts list
+  - [ ] | Get Permissions in vCenter sorted via Principal (Level: Entities@DataCenter)
+  - [ ] | Get Local and SSO users
+  - [x] | Get Advanced Settings "event.maxAge" to determine last X days event to retrieve
 
 ## try_reconnect
 
@@ -109,7 +109,8 @@ Cleanup program internal VMWare Product API Client. Build new one and re-authent
 
 ## support_bundle
 
-Params: `(output=filepath) (selected_host=all)`
+Params: `(selected_host=all)`
 
-Generate and download support bundle from vCenter VCSA or ESXi. Will ask you storage path and which host you would like
-to cover.
+Generate and download support bundle from vCenter VCSA or ESXi. Will ask you which host you would like to cover.
+
+However, for standalone ESXi Host, `selected_host` will be ignored. for vCenter, it still NEEDs TO BE TESTED.
