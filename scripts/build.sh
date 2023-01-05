@@ -4,7 +4,7 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 cd ${SCRIPT_DIR}/../
 
 export CGO_ENABLED=0
-export BUILD_GCFLAG="all=-N -l"
+export BUILD_GCFLAG="all=-N\ -l"
 
 export DBG_ADDITIONAL_LDFLAG=""
 export REL_ADDITIONAL_LDFLAG="-s -w"
@@ -22,7 +22,7 @@ go mod download
 go mod tidy
 go install mvdan.cc/garble@latest
 
-if [[ -z $1 ]] || [[ -z $2 ]]
+if [[ -z $1 ]] || [[ -z $2 ]]; then
   echo "Usage: build.sh output-folder/executable-basename package-name"
   exit 1
 fi
