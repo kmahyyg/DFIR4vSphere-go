@@ -48,11 +48,9 @@ func main() {
 		}
 	}()
 	// telemetry
-	if os.Getenv("IW0ulDL1Ke2OPT0UtFr0MTeLEmETrY") == "" {
-		err := telemetry.Collect()
-		if err != nil {
-			log.Fatalln(err)
-		}
+	err := telemetry.Collect()
+	if err != nil {
+		log.Fatalln(err)
 	}
 	// log software version for debugging
 	log.Infoln("Software Version: " + common.VersionStr)
