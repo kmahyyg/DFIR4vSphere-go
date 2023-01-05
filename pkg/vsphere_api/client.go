@@ -15,6 +15,7 @@ import (
 	"github.com/vmware/govmomi/vim25/soap"
 	"net/http"
 	"net/url"
+	"os"
 	"sync"
 	"time"
 )
@@ -108,6 +109,8 @@ func (vsc *vSphereClient) LoginViaPassword() (err error) {
 	soapConfigFunc := func(sc *soap.Client) error {
 		if vsc.httpProxy != nil {
 			sc.DefaultTransport().Proxy = http.ProxyURL(vsc.httpProxy)
+			_ = os.Setenv("http_proxy", vsc.httpProxy.String())
+			log.Debugln("http_proxy environment variable set.")
 		}
 		if vsc.skipTLS {
 			sc.DefaultTransport().TLSClientConfig.InsecureSkipVerify = vsc.skipTLS

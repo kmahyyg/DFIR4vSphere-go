@@ -39,8 +39,14 @@ func (vsc *vSphereClient) RequestSupportBundle(hostList []*object.HostSystem, wg
 func (vsc *vSphereClient) generateSupportBundle(hostList []*object.HostSystem, pLogger *dumbProgressLogger) ([]types.DiagnosticManagerBundleInfo,
 	error) {
 	// stage 1: generate support bundle
-	tmpCtx := context.TODO()
-	tasks, err := vsc.vmwDiagMgr.GenerateLogBundles(tmpCtx, true, hostList)
+	tmpCtx := context.Background()
+	var err error
+	var sBundleTask *object.Task
+	if vsc.IsVCenter() {
+		sBundleTask, err = vsc.vmwDiagMgr.GenerateLogBundles(tmpCtx, true, hostList)
+	} else {
+		sBundleTask, err = vsc.vmwDiagMgr.GenerateLogBundles(tmpCtx, false, nil)
+	}
 	if err != nil {
 		log.Errorln("generate support bundle, internal: ", err)
 		return nil, ErrCreateGenerationTaskFailed
@@ -48,7 +54,7 @@ func (vsc *vSphereClient) generateSupportBundle(hostList []*object.HostSystem, p
 	log.Infoln("bundle generator task successfully created. Waiting for generation.")
 	log.Infoln("generator task is running, this may take some time, PLEASE WAIT PATIENTLY.")
 	// stage 2: show task result
-	r, err := tasks.WaitForResult(tmpCtx, pLogger)
+	r, err := sBundleTask.WaitForResult(tmpCtx, pLogger)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +79,7 @@ func (vsc *vSphereClient) downloadSupportBundle(bundlesInfo []types.DiagnosticMa
 		// original default download parameter only consists of GET method definition
 		// cmd.DownloadFile -> cmd.client.DownloadFile -> soap.Client.Download -> soap.Client.WriteFile
 		dwnldTaskWg.Add(1)
-		go progressedDownloader(dstFile, fBundleURL.String(), dwnldTaskWg)
+		go vsc.progressedDownloader(dstFile, fBundleURL.String(), dwnldTaskWg)
 		log.Infoln("downloader task created: ", dstFile)
 	}
 	log.Infoln("all tasks are downloading, wait until complete.")
@@ -82,7 +88,7 @@ func (vsc *vSphereClient) downloadSupportBundle(bundlesInfo []types.DiagnosticMa
 	return nil
 }
 
-func progressedDownloader(dstFile string, url string, dwnldWg *sync.WaitGroup) {
+func (vsc *vSphereClient) progressedDownloader(dstFile string, url string, dwnldWg *sync.WaitGroup) {
 	defer dwnldWg.Done()
 	ctx := context.Background()
 	httpCli := http.DefaultClient
