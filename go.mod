@@ -6,6 +6,7 @@ replace intra-git.kmahyyg.xyz/kmahyyg/usertelemetry/golang => /Users/kmahyyg/Dev
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.6
+	github.com/schollz/progressbar/v3 v3.13.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/vmware/govmomi v0.30.0
 	intra-git.kmahyyg.xyz/kmahyyg/usertelemetry/golang v0.0.0-00010101000000-000000000000
@@ -25,7 +26,6 @@ require (
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d // indirect
 	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db // indirect
 	github.com/rivo/uniseg v0.4.3 // indirect
-	github.com/schollz/progressbar/v3 v3.13.0 // indirect
 	go4.org/mem v0.0.0-20210711025021-927187094b94 // indirect
 	golang.org/x/crypto v0.0.0-20220427172511-eb4f295cb31f // indirect
 	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e // indirect
