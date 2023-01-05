@@ -7,7 +7,7 @@ export CGO_ENABLED=0
 export BUILD_GCFLAG="all=-N\ -l"
 
 export DBG_ADDITIONAL_LDFLAG=""
-export REL_ADDITIONAL_LDFLAG="-s -w"
+export REL_ADDITIONAL_LDFLAG="-s\ -w"
 
 export DBG_GOC="go"
 export REL_GOC="garble"
@@ -16,7 +16,10 @@ export OBFS_PARAM="-literals -seed=random -tiny"
 export REL_GOFLAG="-trimpath"
 
 export PROG_VERSION=$(git describe --long --tags --always --dirty)
-export BUILD_LDFLAG="-X github.com/kmahyyg/DFIR4vSphere-go/pkg/common.VersionStr=${PROG_VERSION}"
+# do not include any line break characters, use -n, they are illegal in http headers
+echo -n "${PROG_VERSION}" > ./pkg/common/gitversion.txt
+
+export BUILD_LDFLAG=""
 
 go mod download
 go mod tidy
