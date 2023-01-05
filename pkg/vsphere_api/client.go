@@ -9,7 +9,6 @@ import (
 	"github.com/vmware/govmomi/find"
 	"github.com/vmware/govmomi/object"
 	"github.com/vmware/govmomi/session/cache"
-	"github.com/vmware/govmomi/vapi/rest"
 	"github.com/vmware/govmomi/vim25"
 	"github.com/vmware/govmomi/vim25/methods"
 	"github.com/vmware/govmomi/vim25/soap"
@@ -59,12 +58,6 @@ type vSphereClient struct {
 
 	// data context when using in the same session
 	dataCtx context.Context
-
-	// restapi-based client
-	// rest.Client is the base of vim25.Client
-	// no need to initialize manually
-	// left here for convenience
-	__vmwRestClient *rest.Client
 
 	// mutex
 	mu *sync.RWMutex
