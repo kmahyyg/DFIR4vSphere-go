@@ -15,7 +15,8 @@ export OBFS_PARAM="-literals -seed=random -tiny"
 
 export REL_GOFLAG="-trimpath"
 
-export BUILD_LDFLAG="-X github.com/kmahyyg/DFIR4vSphere-go/pkg/common.VersionStr=v0.0.1-snapshot1"
+export PROG_VERSION=$(git describe --long --tags --always --dirty)
+export BUILD_LDFLAG="-X github.com/kmahyyg/DFIR4vSphere-go/pkg/common.VersionStr=${PROG_VERSION}"
 
 go mod download
 go mod tidy
