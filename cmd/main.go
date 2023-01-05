@@ -96,7 +96,7 @@ func main() {
 		},
 	}
 	// ask and get answer
-	err := survey.Ask(qslist, common.UserAnswer)
+	err = survey.Ask(qslist, common.UserAnswer)
 	if err != nil {
 		panic(err)
 	}

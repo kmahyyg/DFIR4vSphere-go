@@ -10,6 +10,7 @@ import (
 )
 
 func RetrieveSupportBundle() {
+	// no need to check if vCenter or standalone ESXi Host, if standalone, then there will only be a single host
 	err := vsphere_api.GlobalClient.ListEsxiHost()
 	if err != nil {
 		log.Errorln("retrieve esxi host list failed: ", err)
