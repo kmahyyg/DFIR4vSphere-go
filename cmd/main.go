@@ -60,8 +60,8 @@ func main() {
 		{
 			Name: "http_proxy", // ask proxy
 			Prompt: &survey.Input{
-				Message: "HTTP Proxy URL? (http://HOST:PORT) (If not, press enter)",
-				Help:    "Example: \"http://127.0.0.1:3128\".",
+				Message: "Proxy URL?  (If not, press enter)",
+				Help:    "Format: (http://HOST:PORT, supported protocol: http/https/socks5), Example: \"http://127.0.0.1:3128\".",
 			},
 		},
 		{
@@ -113,9 +113,9 @@ func main() {
 			proxyCheckErr = errors.New("proxy url should not have any path and querystring")
 		}
 		if proxyCheckErr != nil {
-			log.Fatalln("HTTP Proxy Invalid: " + proxyCheckErr.Error())
+			log.Fatalln("Proxy Invalid: " + proxyCheckErr.Error())
 		}
-		log.Infoln("User set to use HTTP Proxy, pre-flight check passed.")
+		log.Infoln("User set to use Proxy Server, pre-flight check passed.")
 	}
 	vcURL, err := url.Parse(common.UserAnswer.HostAddr)
 	if vcURL.Scheme != "https" {

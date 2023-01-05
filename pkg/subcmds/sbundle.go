@@ -68,6 +68,6 @@ func RetrieveSupportBundle(wg *sync.WaitGroup) {
 		log.Errorln("request support bundle err: ", err)
 		return
 	}
-	log.Infoln("Request support bundle successfully finished, now downloading.")
+	log.Infoln("Request support bundle successfully finished.")
 	return
 }

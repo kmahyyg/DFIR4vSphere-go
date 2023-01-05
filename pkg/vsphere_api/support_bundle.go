@@ -2,6 +2,7 @@ package vsphere_api
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"github.com/kmahyyg/DFIR4vSphere-go/pkg/common"
 	"github.com/schollz/progressbar/v3"
@@ -23,6 +24,7 @@ func (vsc *vSphereClient) RequestSupportBundle(hostList []*object.HostSystem, wg
 	if !vsc.postInitDone || !vsc.IsLoggedIn() {
 		return ErrSessionInvalid
 	}
+	log.Infoln("Note: Percentage in progress bar may always show 0%, just ignore it and hold on please.")
 	progLogger := newDumbProgressLogger("Generating Support Bundle... ")
 	diagBundles, err := vsc.generateSupportBundle(hostList, progLogger)
 	if err != nil {
@@ -92,14 +94,22 @@ func (vsc *vSphereClient) progressedDownloader(dstFile string, url string, dwnld
 	defer dwnldWg.Done()
 	ctx := context.Background()
 	httpCli := http.DefaultClient
+	httpCli.Transport = http.DefaultTransport
+	if vsc.httpProxy != nil {
+		httpCli.Transport.(*http.Transport).Proxy = http.ProxyURL(vsc.httpProxy)
+		httpCli.Transport.(*http.Transport).TLSClientConfig = &tls.Config{
+			ClientAuth:         tls.NoClientCert,
+			InsecureSkipVerify: vsc.skipTLS,
+		}
+	}
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		log.Errorln("unknown error occurred when build requests, err: ", err)
 		return
 	}
+	req.Header.Add("User-Agent", "DFIR4vSphere-Go/"+common.VersionStr)
 	req = req.WithContext(ctx)
 	// by default, the param for request build is only GET method, without any cookie
-	req.Header.Add("User-Agent", "DFIR4vSphere-Go/"+common.VersionStr)
 	resp, err := httpCli.Do(req)
 	if err != nil {
 		log.Errorln("request sent, response err: ", err)
