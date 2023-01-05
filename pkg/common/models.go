@@ -1,15 +1,18 @@
 package common
 
 import (
+	_ "embed"
 	"fmt"
 	"os"
 )
 
 var (
 	UserAnswer = &UserInput{}
-	VersionStr = ""
 	LogFileFD  *os.File
 )
+
+//go:embed gitversion.txt
+var VersionStr string
 
 type UserInput struct {
 	HttpProxyHost string `survey:"http_proxy"`
