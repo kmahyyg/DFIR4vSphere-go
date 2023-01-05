@@ -7,10 +7,13 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/vmware/govmomi/find"
 	"github.com/vmware/govmomi/list"
+	"github.com/vmware/govmomi/object"
+	"sync"
 )
 
-func RetrieveSupportBundle() {
+func RetrieveSupportBundle(wg *sync.WaitGroup) {
 	// no need to check if vCenter or standalone ESXi Host, if standalone, then there will only be a single host
+	// list and retrieve esxi host from server
 	err := vsphere_api.GlobalClient.ListEsxiHost()
 	if err != nil {
 		log.Errorln("retrieve esxi host list failed: ", err)
@@ -21,8 +24,9 @@ func RetrieveSupportBundle() {
 		log.Errorln("esxi host list not in ctx: ", err)
 		return
 	}
+	// build selection
+	tmpESX := esxHostLst.([]list.Element)
 	esxHostSelections, err := func() ([]string, error) {
-		tmpESX := esxHostLst.([]list.Element)
 		res := make([]string, len(tmpESX))
 		for i := range tmpESX {
 			tmpCtx := context.Background()
@@ -38,6 +42,7 @@ func RetrieveSupportBundle() {
 		log.Errorln("build esxi host option list failed: ", err)
 		return
 	}
+	// ask user, query answer is index list
 	ansEsxHosts := make([]int, 0)
 	qsEsxHosts := &survey.MultiSelect{
 		Message:  "Select ESXi Host you would like to request a support bundle:",
@@ -47,8 +52,22 @@ func RetrieveSupportBundle() {
 	err = survey.AskOne(qsEsxHosts, &ansEsxHosts, survey.WithValidator(survey.Required))
 	if err != nil {
 		log.Errorln("user answer err: ", err)
+		return
 	}
 	log.Debugln("Retrieved ESXi Host for Selection: ", esxHostSelections)
 	log.Debugln("User Selected: ", ansEsxHosts)
+	// convert from index list of list.Element to *object.hostsystem
+	hsList := make([]*object.HostSystem, len(ansEsxHosts))
+	for i, v := range ansEsxHosts {
+		sHostElem := tmpESX[v]
+		hsList[i] = object.NewHostSystem(vsphere_api.GlobalClient.GetSOAPClient(), sHostElem.Object.Reference())
+	}
+	// call internal function
+	err = vsphere_api.GlobalClient.RequestSupportBundle(hsList, wg)
+	if err != nil {
+		log.Errorln("request support bundle err: ", err)
+		return
+	}
+	log.Infoln("Request support bundle successfully finished, now downloading.")
 	return
 }

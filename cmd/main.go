@@ -189,7 +189,7 @@ func main() {
 				subcmds.RetrieveVIEvents()
 				continue
 			case "support_bundle":
-				subcmds.RetrieveSupportBundle()
+				subcmds.RetrieveSupportBundle(wgBackground)
 				continue
 			case "basic_info":
 				fallthrough

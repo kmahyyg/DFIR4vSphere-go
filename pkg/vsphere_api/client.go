@@ -3,6 +3,7 @@ package vsphere_api
 import (
 	"context"
 	"errors"
+	"github.com/kmahyyg/DFIR4vSphere-go/pkg/common"
 	log "github.com/sirupsen/logrus"
 	"github.com/vmware/govmomi/event"
 	"github.com/vmware/govmomi/find"
@@ -52,6 +53,8 @@ type vSphereClient struct {
 	evntMaxAge int
 	// vcsa option manager
 	vcsaOptionMgr *object.OptionManager
+	// vsphere diag mgr
+	vmwDiagMgr *object.DiagnosticManager
 
 	// data context when using in the same session
 	dataCtx context.Context
@@ -109,7 +112,7 @@ func (vsc *vSphereClient) LoginViaPassword() (err error) {
 		if vsc.skipTLS {
 			sc.DefaultTransport().TLSClientConfig.InsecureSkipVerify = vsc.skipTLS
 		}
-		sc.UserAgent = "DFIR4vSphere-Go"
+		sc.UserAgent = "DFIR4vSphere-Go/" + common.VersionStr
 		// now this client is initialized without error
 		return nil
 	}
@@ -139,6 +142,7 @@ func (vsc *vSphereClient) postLoginSuccessInit() error {
 	// other manager
 	vsc.evntMgr = event.NewManager(vsc.vmwSoapClient)
 	vsc.evntMaxAge = -1
+	vsc.vmwDiagMgr = object.NewDiagnosticManager(vsc.vmwSoapClient)
 	vsc.postInitDone = true
 	return nil
 }
