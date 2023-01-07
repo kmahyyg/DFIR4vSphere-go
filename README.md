@@ -33,6 +33,14 @@ those data will only be used for verify commercial license, and will not disclos
 
 To opt-out from telemetry: `export IW0ulDL1Ke2OPT0UtFr0MTeLEmETrY=1`
 
+# Example DFIR Artifact
+
+ZSTD compressed virtual disk container:
+
+- Filename: vcsupport-bundle.vhdx.zst
+Link：https://pan.quark.cn/s/ab3c50e6c5ff
+Passcode：2ZQr
+
 # License
 
 GNU AGPL v3

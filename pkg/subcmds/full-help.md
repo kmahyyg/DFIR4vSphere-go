@@ -6,7 +6,7 @@ Version v0.0.1-snapshot2-14-g91bb79c
 
 Full Commands:
 - `support_bundle`
-- `try_reconnect` 
+- `try_reconnect`
 - `basic_info`
 - `vi_events`
 - `exit`
@@ -37,28 +37,28 @@ Params: `(light_mode=bool) (selected_host=esxi_hostname1|esxi_hostname2)`
 package vsphere_api
 
 var (
-    lightVIEventTypesId = []string{"ad.event.JoinDomainEvent", "VmFailedToSuspendEvent", "VmSuspendedEvent",
-        "VmSuspendingEvent", "VmDasUpdateOkEvent", "VmReconfiguredEvent", "UserUnassignedFromGroup",
-        "UserAssignedToGroup", "UserPasswordChanged", "AccountCreatedEvent", "AccountRemovedEvent",
-        "AccountUpdatedEvent", "UserLoginSessionEvent", "RoleAddedEvent", "RoleRemovedEvent", "RoleUpdatedEvent",
-        "TemplateUpgradeEvent", "TemplateUpgradedEvent", "PermissionAddedEvent", "PermissionUpdatedEvent",
-        "PermissionRemovedEvent", "LocalTSMEnabledEvent", "DatastoreFileDownloadEvent", "DatastoreFileUploadEvent",
-        "DatastoreFileDeletedEvent", "VmAcquiredMksTicketEvent",
-        "com.vmware.vc.guestOperations.GuestOperationAuthFailure", "com.vmware.vc.guestOperations.GuestOperation",
-        "esx.audit.ssh.enabled", "esx.audit.ssh.session.failed", "esx.audit.ssh.session.closed",
-        "esx.audit.ssh.session.opened", "esx.audit.account.locked", "esx.audit.account.loginfailures",
-        "esx.audit.dcui.login.passwd.changed", "esx.audit.dcui.enabled", "esx.audit.dcui.disabled",
-        "esx.audit.lockdownmode.exceptions.changed", "esx.audit.shell.disabled", "esx.audit.shell.enabled",
-        "esx.audit.lockdownmode.disabled", "esx.audit.lockdownmode.enabled", "com.vmware.sso.LoginSuccess",
-        "com.vmware.sso.LoginFailure", "com.vmware.sso.Logout", "com.vmware.sso.PrincipalManagement",
-        "com.vmware.sso.RoleManagement", "com.vmware.sso.IdentitySourceManagement", "com.vmware.sso.DomainManagement",
-        "com.vmware.sso.ConfigurationManagement", "com.vmware.sso.CertificateManager",
-        "com.vmware.trustmanagement.VcTrusts", "com.vmware.trustmanagement.VcIdentityProviders",
-        "com.vmware.cis.CreateGlobalPermission", "com.vmware.cis.CreatePermission",
-        "com.vmware.cis.RemoveGlobalPermission", "com.vmware.cis.RemovePermission", "com.vmware.vc.host.Crypto.Enabled",
-        "com.vmware.vc.host.Crypto.HostCryptoDisabled", "ProfileCreatedEvent", "ProfileChangedEvent",
-        "ProfileRemovedEvent", "ProfileAssociatedEvent", "esx.audit.esximage.vib.install.successful",
-        "esx.audit.esximage.hostacceptance.changed", "esx.audit.esximage.vib.remove.successful"}
+	lightVIEventTypesId = []string{"ad.event.JoinDomainEvent", "VmFailedToSuspendEvent", "VmSuspendedEvent",
+		"VmSuspendingEvent", "VmDasUpdateOkEvent", "VmReconfiguredEvent", "UserUnassignedFromGroup",
+		"UserAssignedToGroup", "UserPasswordChanged", "AccountCreatedEvent", "AccountRemovedEvent",
+		"AccountUpdatedEvent", "UserLoginSessionEvent", "RoleAddedEvent", "RoleRemovedEvent", "RoleUpdatedEvent",
+		"TemplateUpgradeEvent", "TemplateUpgradedEvent", "PermissionAddedEvent", "PermissionUpdatedEvent",
+		"PermissionRemovedEvent", "LocalTSMEnabledEvent", "DatastoreFileDownloadEvent", "DatastoreFileUploadEvent",
+		"DatastoreFileDeletedEvent", "VmAcquiredMksTicketEvent",
+		"com.vmware.vc.guestOperations.GuestOperationAuthFailure", "com.vmware.vc.guestOperations.GuestOperation",
+		"esx.audit.ssh.enabled", "esx.audit.ssh.session.failed", "esx.audit.ssh.session.closed",
+		"esx.audit.ssh.session.opened", "esx.audit.account.locked", "esx.audit.account.loginfailures",
+		"esx.audit.dcui.login.passwd.changed", "esx.audit.dcui.enabled", "esx.audit.dcui.disabled",
+		"esx.audit.lockdownmode.exceptions.changed", "esx.audit.shell.disabled", "esx.audit.shell.enabled",
+		"esx.audit.lockdownmode.disabled", "esx.audit.lockdownmode.enabled", "com.vmware.sso.LoginSuccess",
+		"com.vmware.sso.LoginFailure", "com.vmware.sso.Logout", "com.vmware.sso.PrincipalManagement",
+		"com.vmware.sso.RoleManagement", "com.vmware.sso.IdentitySourceManagement", "com.vmware.sso.DomainManagement",
+		"com.vmware.sso.ConfigurationManagement", "com.vmware.sso.CertificateManager",
+		"com.vmware.trustmanagement.VcTrusts", "com.vmware.trustmanagement.VcIdentityProviders",
+		"com.vmware.cis.CreateGlobalPermission", "com.vmware.cis.CreatePermission",
+		"com.vmware.cis.RemoveGlobalPermission", "com.vmware.cis.RemovePermission", "com.vmware.vc.host.Crypto.Enabled",
+		"com.vmware.vc.host.Crypto.HostCryptoDisabled", "ProfileCreatedEvent", "ProfileChangedEvent",
+		"ProfileRemovedEvent", "ProfileAssociatedEvent", "esx.audit.esximage.vib.install.successful",
+		"esx.audit.esximage.hostacceptance.changed", "esx.audit.esximage.vib.remove.successful"}
 )
 ```
 
@@ -82,7 +82,7 @@ For ESXi-standalone host:
     - [ ] | List System Certificate Store
     - [ ] | (If Version >= 7.0.2) Get System Encryption Settings
     - [ ] | (If Version >= 7.0.2) Get System Guest Store Repository
-    - [ ] | (If Version >= 7.0.2) (list changed items only) List System Advanced Settings using Delta method 
+    - [ ] | (If Version >= 7.0.2) (list changed items only) List System Advanced Settings using Delta method
     - [ ] | (If Version >= 7.0.2) (list changed items only) List System Settings Kernel List
     - [ ] | (If Version >= 7.0.2) Get System SysLog Config
     - [ ] | (If Version >= 7.0.0) Get System BaseImage Information
@@ -98,10 +98,10 @@ For ESXi-standalone host:
 
 For vCenter-managed ESXi host:
 - In addition to standalone ESXi Host, will do following things:
-  - [ ] | Get Connected ESXi Hosts list
-  - [ ] | Get Permissions in vCenter sorted via Principal (Level: Entities@DataCenter)
-  - [ ] | Get Local and SSO users
-  - [x] | Get Advanced Settings "event.maxAge" to determine last X days event to retrieve
+    - [ ] | Get Connected ESXi Hosts list
+    - [ ] | Get Permissions in vCenter sorted via Principal (Level: Entities@DataCenter)
+    - [ ] | Get Local and SSO users
+    - [x] | Get Advanced Settings "event.maxAge" to determine last X days event to retrieve
 
 ## try_reconnect
 

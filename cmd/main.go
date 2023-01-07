@@ -8,7 +8,7 @@ import (
 	"github.com/kmahyyg/DFIR4vSphere-go/pkg/subcmds"
 	"github.com/kmahyyg/DFIR4vSphere-go/pkg/vsphere_api"
 	log "github.com/sirupsen/logrus"
-	"intra-git.kmahyyg.xyz/kmahyyg/usertelemetry/golang/telemetry"
+	"intra-git.kmahyyg.xyz/kmahyyg/usertelemetry/telemetry"
 	"io"
 	"net/url"
 	"os"
@@ -192,7 +192,8 @@ func main() {
 				subcmds.RetrieveSupportBundle(wgBackground)
 				continue
 			case "basic_info":
-				fallthrough
+				subcmds.RetrieveBasicInformation()
+				continue
 			default:
 				fmt.Println("not implemented.")
 			}

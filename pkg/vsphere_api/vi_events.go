@@ -61,7 +61,7 @@ func (vsc *vSphereClient) GetEventsFromMgr(lightMode bool, dcList []types.Manage
 		return ErrPrerequisitesNotSatisfied
 	}
 	// get max age
-	err := vsc.GetEventMaxAge()
+	_, err := vsc.GetEventMaxAge()
 	if err != nil {
 		return err
 	}
@@ -236,12 +236,12 @@ func (vsc *vSphereClient) NewVcsaOptionManager() error {
 	return nil
 }
 
-func (vsc *vSphereClient) GetEventMaxAge() error {
+func (vsc *vSphereClient) GetEventMaxAge() (int, error) {
 	_ = vsc.NewVcsaOptionManager()
 	tmpCtx := context.Background()
 	opts, err := vsc.vcsaOptionMgr.Query(tmpCtx, "event.maxAge")
 	if err != nil {
-		return err
+		return -1, err
 	}
 	for i := range opts {
 		sOpt := opts[i].GetOptionValue()
@@ -251,7 +251,7 @@ func (vsc *vSphereClient) GetEventMaxAge() error {
 		}
 		log.Infof("VCSA Option: %s = %v ", sOpt.Key, sOpt.GetOptionValue().Value)
 	}
-	return nil
+	return vsc.evntMaxAge, nil
 }
 
 type wrappedViEvent struct {

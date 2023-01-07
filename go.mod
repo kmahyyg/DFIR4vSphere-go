@@ -2,14 +2,14 @@ module github.com/kmahyyg/DFIR4vSphere-go
 
 go 1.19
 
-replace intra-git.kmahyyg.xyz/kmahyyg/usertelemetry/golang => /Users/kmahyyg/Developer/GitBins/userTelemetryCF/userTelemetryCF/golang
+replace intra-git.kmahyyg.xyz/kmahyyg/usertelemetry => /Users/kmahyyg/Developer/GitBins/userTelemetryCF/userTelemetryCF/golang
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.6
 	github.com/schollz/progressbar/v3 v3.13.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/vmware/govmomi v0.30.0
-	intra-git.kmahyyg.xyz/kmahyyg/usertelemetry/golang v0.0.0-00010101000000-000000000000
+	intra-git.kmahyyg.xyz/kmahyyg/usertelemetry v0.0.0-00010101000000-000000000000
 )
 
 require (
