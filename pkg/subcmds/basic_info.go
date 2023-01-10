@@ -33,8 +33,8 @@ func RetrieveBasicInformation() {
 		if err != nil {
 			log.Errorln("retrieve permissions list out, err: ", err)
 		}
-		//TODO: get local and sso user
-		//
+		// get local and sso user
+		err = vsphere_api.GlobalClient.ListAllUsers(vcbi)
 		// get max age
 		vcbi.EventMaxAge, err = vsphere_api.GlobalClient.GetEventMaxAge()
 		if err != nil {
