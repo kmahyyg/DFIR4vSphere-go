@@ -98,9 +98,9 @@ For ESXi-standalone host:
 
 For vCenter-managed ESXi host:
 - In addition to standalone ESXi Host, will do following things:
-    - [ ] | Get Connected ESXi Hosts list
-    - [ ] | Get Permissions in vCenter sorted via Principal (Level: Entities@DataCenter)
-    - [ ] | Get Local and SSO users
+    - [x] | Get Connected ESXi Hosts list
+    - [x] | Get Permissions in vCenter sorted via Principal (Level: Entities@DataCenter)
+    - [x] | Get Local and SSO users
     - [x] | Get Advanced Settings "event.maxAge" to determine last X days event to retrieve
 
 ## try_reconnect
