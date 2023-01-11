@@ -14,13 +14,15 @@ import (
 )
 
 type vcUser struct {
-	Name        string `json:"name"` // name@domain
-	Alias       string `json:"alias"`
-	Disabled    bool   `json:"disabled"`
-	Locked      bool   `json:"locked"`
-	Description string `json:"description"`
-	EmailAddr   string `json:"email_addr"`
-	NickName    string `json:"nickname"` // firstname+lastname
+	Name           string `json:"name"` // name@domain
+	Alias          string `json:"alias"`
+	Disabled       bool   `json:"disabled"`
+	Locked         bool   `json:"locked"`
+	Description    string `json:"description"`
+	EmailAddr      string `json:"email_addr"`
+	IsSolutionUser bool   `json:"is_solution_user"`
+	Kind           string `json:"kind"`
+	NickName       string `json:"nickname"` // firstname+lastname
 }
 
 type VCBasicInfo struct {
@@ -228,7 +230,58 @@ func (vsc *vSphereClient) ListAllUsers(vcbi *VCBasicInfo) error {
 	}
 	vcbi.SSOGroups = resGrps
 	// list sso users
-
+	// solution users first
+	resUsers := make([]*vcUser, 0)
+	soUsers, err := ssocli.FindSolutionUsers(tmpCtx, "")
+	if err != nil {
+		return err
+	}
+	for _, v := range soUsers {
+		tU := &vcUser{
+			Name: v.Id.Name + "@" + v.Id.Domain,
+			Alias: func() string {
+				if v.Alias != nil {
+					return v.Alias.Name + "@" + v.Alias.Domain
+				} else {
+					return "-"
+				}
+			}(),
+			Disabled:       v.Disabled,
+			Locked:         false,
+			Description:    v.Details.Description,
+			EmailAddr:      "-",
+			IsSolutionUser: true,
+			Kind:           "SolutionUsers",
+			NickName:       "-",
+		}
+		resUsers = append(resUsers, tU)
+	}
+	// personal users next
+	pUsers, err := ssocli.FindPersonUsers(tmpCtx, "")
+	if err != nil {
+		return err
+	}
+	for _, v := range pUsers {
+		pu := &vcUser{
+			Name: v.Id.Name + "@" + v.Id.Domain,
+			Alias: func() string {
+				if v.Alias != nil {
+					return v.Alias.Name + "@" + v.Alias.Domain
+				} else {
+					return "-"
+				}
+			}(),
+			Disabled:       v.Disabled,
+			Locked:         v.Locked,
+			Description:    v.Details.Description,
+			EmailAddr:      v.Details.EmailAddress,
+			IsSolutionUser: false,
+			Kind:           "PersonalUsers",
+			NickName:       v.Details.FirstName + " " + v.Details.LastName,
+		}
+		resUsers = append(resUsers, pu)
+	}
+	vcbi.SSOUsers = resUsers
 	// list local password policies
 	lppreq := &ssotypes.GetLocalPasswordPolicy{
 		This: ssocli.ServiceContent.PasswordPolicyService,
