@@ -24,7 +24,7 @@ func RetrieveBasicInformation() {
 		vcbi.ESXHostList = make([]string, len(Hsysts.([]list.Element)))
 		for i := range Hsysts.([]list.Element) {
 			hss := object.NewHostSystem(vsphere_api.GlobalClient.GetSOAPClient(), Hsysts.([]list.Element)[i].Object.Reference())
-			vcbi.ESXHostList[i] = hss.InventoryPath
+			vcbi.ESXHostList[i] = Hsysts.([]list.Element)[i].Path
 			vcbi.ESXHostObjs = append(vcbi.ESXHostObjs, hss)
 		}
 	}

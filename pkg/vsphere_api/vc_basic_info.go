@@ -160,14 +160,20 @@ func (vsc *vSphereClient) ListPermissions(vcbi *VCBasicInfo) error {
 		return err
 	}
 	log.Debugln("executed: retrieve all perms in ListPermissions")
-	for i := range permList {
-		vcbi.VCAuthoriPerm[i], err = fromVInternalPermissionSetToOutPerm(permList[i])
-		if err != nil {
-			log.Errorln("type conversion: permission list, err: ", err)
-			continue
+	if len(permList) != 0 {
+		log.Debugln("permission list length is not zero.")
+		vcbi.VCAuthoriPerm = make([]*vcPermission, len(permList))
+		for i := range permList {
+			vcbi.VCAuthoriPerm[i], err = fromVInternalPermissionSetToOutPerm(permList[i])
+			if err != nil {
+				log.Errorln("type conversion: permission list, err: ", err)
+				continue
+			}
 		}
+		log.Debugln("executed: transform permissions object in ListPermissions")
+	} else {
+		log.Errorln("retrieve perm list with ZERO length.")
 	}
-	log.Debugln("executed: transform permissions object in ListPermissions")
 	return nil
 }
 
