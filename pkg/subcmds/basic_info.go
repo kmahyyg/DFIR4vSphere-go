@@ -14,7 +14,9 @@ func RetrieveBasicInformation() {
 	err := vsphere_api.GlobalClient.ListEsxiHost()
 	if err != nil {
 		log.Errorln("list esxi host - basic info, err: ", err)
+		return
 	} else {
+		log.Infoln("esxi host list finished.")
 		Hsysts, err := vsphere_api.GlobalClient.GetCtxData("esxiHostList")
 		if err != nil {
 			log.Errorln(err)
@@ -28,19 +30,34 @@ func RetrieveBasicInformation() {
 	}
 	// processing if only vcenter
 	if vsphere_api.GlobalClient.IsVCenter() {
+		log.Infoln("vcenter determined. execute specific method.")
 		// retrieve permissions list with role
 		err = vsphere_api.GlobalClient.ListPermissions(vcbi)
 		if err != nil {
 			log.Errorln("retrieve permissions list out, err: ", err)
 		}
+		log.Infoln("list permission finished.")
 		// get local and sso user
 		err = vsphere_api.GlobalClient.ListAllUsers(vcbi)
+		if err != nil {
+			log.Errorln("list all users, err: ", err)
+		}
+		log.Infoln("list all users finished.")
 		// get max age
 		vcbi.EventMaxAge, err = vsphere_api.GlobalClient.GetEventMaxAge()
 		if err != nil {
 			log.Errorln("getevent-max-age-out, err:", err)
 		}
+		log.Infoln("get vcenter max event age finished.")
 	}
-	// globally retrieve data from esxi host
-
+	// if: standalone host, only singleHost should be used, do not use esxi host from List method.
+	// else: for each esx host, execute other methods.
+	err = vsphere_api.GlobalClient.RetrieveESXiHostBasicInfo(vcbi)
+	if err != nil {
+		log.Errorln("retr esxi info fail, err:", err)
+		return
+	}
+	// marshal vcbi
+	//TODO
+	return
 }

@@ -71,15 +71,15 @@ Output: `BasicInfo_<Unix Timestamp>.json`
 Will collect the following information:
 
 For ESXi-standalone host:
-- [ ] | Get running service status
-- [ ] | Get authentication information
+- [x] | Get running service status (covered in HostSystem "config" property above)
+- [x] | Get authentication information (covered in HostSystem "config" property above)
 - [ ] | Expose ESXCli v2, and Do following:
     - [ ] | Get System Version
     - [ ] | List System Account
     - [ ] | List System Permission
     - [ ] | List System Modules
     - [ ] | List System Processes
-    - [ ] | List System Certificate Store
+    - [ ] | List System Certificate Store (covered in HostSystem "config" property above)
     - [ ] | (If Version >= 7.0.2) Get System Encryption Settings
     - [ ] | (If Version >= 7.0.2) Get System Guest Store Repository
     - [ ] | (If Version >= 7.0.2) (list changed items only) List System Advanced Settings using Delta method
@@ -88,13 +88,13 @@ For ESXi-standalone host:
     - [ ] | (If Version >= 7.0.0) Get System BaseImage Information
     - [ ] | (If Version >= 7.0.0) Get Software VIBs
     - [ ] | (If Version >= 7.0.0) Get Software Profiles
-    - [ ] | (If Version >= 7.0.0) List Storage IOFilters
-    - [ ] | Network interface IPs and routes
+    - [x] | (If Version >= 7.0.0) List Storage IOFilters (covered in HostSystem "config" property above)
+    - [x] | Network interface IPs and routes (covered in HostSystem "config" property above)
     - [ ] | Network neighbor list using ARP cache
-    - [ ] | Network DNS IPs
+    - [x] | Network DNS IPs (covered in HostSystem "config" property above)
     - [ ] | Network Connections status
     - [ ] | Network PortGroup VM Lists
-    - [ ] | Network vSwitch List
+    - [x] | Network vSwitch List (covered in HostSystem "config" property above)
 
 For vCenter-managed ESXi host:
 - In addition to standalone ESXi Host, will do following things:

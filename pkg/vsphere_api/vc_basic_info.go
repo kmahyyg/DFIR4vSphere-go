@@ -26,15 +26,16 @@ type vcUser struct {
 }
 
 type VCBasicInfo struct {
-	ESXHostList           []string               `json:"esx_host_names"`
-	ESXHostObjs           []*object.HostSystem   `json:"-"`
-	VCAuthoriRole         []*vcAuthorizationRole `json:"vc_authorization_roles"`
-	VCAuthoriPerm         []*vcPermission        `json:"vc_authorization_permissions"`
-	EventMaxAge           int                    `json:"event_max_age"`
-	SSOPasswordPolicyDesc string                 `json:"sso_password_policy"`
-	SSOIDPDesc            []*vcIdentityProvider  `json:"sso_idp"`
-	SSOGroups             []*vcGroup             `json:"sso_groups"`
-	SSOUsers              []*vcUser              `json:"sso_users"`
+	ESXHostList           []string                     `json:"esx_host_names"`
+	ESXHostObjs           []*object.HostSystem         `json:"-"`
+	VCAuthoriRole         []*vcAuthorizationRole       `json:"vc_authorization_roles"`
+	VCAuthoriPerm         []*vcPermission              `json:"vc_authorization_permissions"`
+	EventMaxAge           int                          `json:"event_max_age"`
+	SSOPasswordPolicyDesc string                       `json:"sso_password_policy"`
+	SSOIDPDesc            []*vcIdentityProvider        `json:"sso_idp"`
+	SSOGroups             []*vcGroup                   `json:"sso_groups"`
+	SSOUsers              []*vcUser                    `json:"sso_users"`
+	ESXHostsData          map[string]*ESXHostBasicInfo `json:"esx_hosts_data"`
 }
 
 func (vcbi *VCBasicInfo) String() string {
@@ -145,17 +146,20 @@ func (vsc *vSphereClient) ListPermissions(vcbi *VCBasicInfo) error {
 		log.Errorln("list role failed.")
 		return err
 	}
+	log.Debugln("executed: list role method in ListPermissions")
 	// role list
 	vcbi.VCAuthoriRole = make([]*vcAuthorizationRole, len(rList))
 	for i := range rList {
 		vcbi.VCAuthoriRole[i] = fromVInternalAuthorizationRoleToOutRole(rList[i])
 	}
+	log.Debugln("executed: transform role object in ListPermissions")
 	// permission set and assignment
 	permList, err := authMgr.RetrieveAllPermissions(tmpCtx)
 	if err != nil {
 		log.Errorln("retr perm list failed.")
 		return err
 	}
+	log.Debugln("executed: retrieve all perms in ListPermissions")
 	for i := range permList {
 		vcbi.VCAuthoriPerm[i], err = fromVInternalPermissionSetToOutPerm(permList[i])
 		if err != nil {
@@ -163,6 +167,7 @@ func (vsc *vSphereClient) ListPermissions(vcbi *VCBasicInfo) error {
 			continue
 		}
 	}
+	log.Debugln("executed: transform permissions object in ListPermissions")
 	return nil
 }
 
@@ -200,6 +205,7 @@ func (vsc *vSphereClient) ListAllUsers(vcbi *VCBasicInfo) error {
 		log.Errorln("cannot create ssoadmin client.")
 		return err
 	}
+	log.Debugln("executed: created sso admin client in ListAllUsers")
 	// list sso idp src
 	vcidps := &vcIdentityProviders{}
 	vcidps.IDP, err = ssocli.IdentitySources(tmpCtx)
@@ -207,11 +213,13 @@ func (vsc *vSphereClient) ListAllUsers(vcbi *VCBasicInfo) error {
 		log.Errorln("get identity sources err.")
 		return err
 	}
+	log.Debugln("executed: list identity sources in ListAllUsers")
 	// list sso groups
 	grupInfo, err := ssocli.FindGroups(tmpCtx, "")
 	if err != nil {
 		return err
 	}
+	log.Debugln("executed: find group in ListAllUsers")
 	resGrps := make([]*vcGroup, 0)
 	for i := range grupInfo {
 		cGrpInfo := grupInfo[i]
@@ -236,6 +244,7 @@ func (vsc *vSphereClient) ListAllUsers(vcbi *VCBasicInfo) error {
 	if err != nil {
 		return err
 	}
+	log.Debugln("executed: find solution users in ListAllUsers")
 	for _, v := range soUsers {
 		tU := &vcUser{
 			Name: v.Id.Name + "@" + v.Id.Domain,
@@ -261,6 +270,7 @@ func (vsc *vSphereClient) ListAllUsers(vcbi *VCBasicInfo) error {
 	if err != nil {
 		return err
 	}
+	log.Debugln("executed: find person users in ListAllUsers")
 	for _, v := range pUsers {
 		pu := &vcUser{
 			Name: v.Id.Name + "@" + v.Id.Domain,
@@ -293,7 +303,7 @@ func (vsc *vSphereClient) ListAllUsers(vcbi *VCBasicInfo) error {
 		return err
 	}
 	lppi.LocalPasswordPolicy = retV.Returnval
-	log.Infoln("Local Password Policies retrieved.")
+	log.Debugln("executed: show local password policy in ListAllUsers")
 	vcbi.SSOPasswordPolicyDesc = lppi.String()
 	return nil
 }
