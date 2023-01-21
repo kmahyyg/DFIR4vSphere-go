@@ -32,11 +32,11 @@ type ESXHostBasicInfo struct {
 	// esxi host certificate
 	CertificateInfo *ESXHostCert `json:"tls_certificates"`
 	// esxi interface ips
-
+	NetIfs []*ESXNetNIC `json:"net_ifs"`
 	// esxi netif routes
-	NetRoutes []string `json:"net_routes,omitempty"` // this should follow Linux route command format
+	NetRoutes []*ESXRouteTable `json:"net_routes,omitempty"` // this should follow Linux route command format
 	// esxi v-switch list
-
+	NetVSwitches []*ESXHostVSW `json:"net_v_switches"`
 }
 
 type ESXAuthenticationInfo struct {
@@ -68,6 +68,10 @@ type ESXNetNIC struct {
 }
 
 type ESXRouteTable struct {
+	DestIP     string `json:"dest_ip,omitempty"`
+	SubnetMask string `json:"subnet_mask,omitempty"`
+	GatewayIP  string `json:"gateway_ip,omitempty"`
+	NetIf      string `json:"net_if,omitempty"`
 }
 
 type esxHostAcitveDirectoryAuthenticationInfo struct {
