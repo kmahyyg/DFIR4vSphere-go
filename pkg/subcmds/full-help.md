@@ -79,7 +79,7 @@ For ESXi-standalone host:
     - [ ] | List System Permission
     - [ ] | List System Modules
     - [ ] | List System Processes
-    - [ ] | List System Certificate Store (covered in HostSystem "config" property above)
+    - [x] | List System Certificate Store
     - [ ] | (If Version >= 7.0.2) Get System Encryption Settings
     - [ ] | (If Version >= 7.0.2) Get System Guest Store Repository
     - [ ] | (If Version >= 7.0.2) (list changed items only) List System Advanced Settings using Delta method
@@ -88,7 +88,7 @@ For ESXi-standalone host:
     - [ ] | (If Version >= 7.0.0) Get System BaseImage Information
     - [ ] | (If Version >= 7.0.0) Get Software VIBs
     - [ ] | (If Version >= 7.0.0) Get Software Profiles
-    - [ ] | (If Version >= 7.0.0) List Storage IOFilters (covered in HostSystem "config" property above)
+    - [x] | (If Version >= 7.0.0) List Storage IOFilters (covered in HostSystem "config" property above)
     - [ ] | Network interface IPs and routes (covered in HostSystem "config" property above)
     - [ ] | Network neighbor list using ARP cache
     - [x] | Network DNS IPs (covered in HostSystem "config" property above)
