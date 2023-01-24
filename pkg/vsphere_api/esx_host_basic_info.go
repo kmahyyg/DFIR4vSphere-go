@@ -33,10 +33,9 @@ type ESXHostBasicInfo struct {
 	CertificateInfo *ESXHostCert `json:"tls_certificates"`
 	// esxi interface ips
 	NetIfs []*ESXNetNIC `json:"net_ifs"`
-	// esxi netif routes
-	NetRoutes []*ESXRouteTable `json:"net_routes,omitempty"` // this should follow Linux route command format
 	// esxi v-switch list
-	NetVSwitches []*ESXHostVSW `json:"net_v_switches"`
+	NetVSwitches   []*ESXHostVSW  `json:"net_v_switches"`
+	NetVPortGroups []*ESXHostPGrp `json:"net_v_port_groups"`
 }
 
 type ESXAuthenticationInfo struct {
@@ -46,15 +45,25 @@ type ESXAuthenticationInfo struct {
 }
 
 type ESXHostVSW struct {
-	Name      string        `json:"name,omitempty"`
-	MTU       uint16        `json:"mtu,omitempty"`
-	BridgedTo []string      `json:"bridged_to,omitempty"`
-	PortGroup []*ESXPortGUP `json:"port_group,omitempty"`
+	Name      string   `json:"name,omitempty"`
+	MTU       int32    `json:"mtu,omitempty"`
+	BridgedTo []string `json:"bridged_to,omitempty"`
+	PortGroup []string `json:"port_group,omitempty"`
 }
 
-type ESXPortGUP struct {
-	Name  string       `json:"name,omitempty"`
-	Ports []*ESXNetNIC `json:"ports,omitempty"`
+type ESXHostPGrp struct {
+	Key               string             `json:"key,omitempty"`
+	VSwitch           string             `json:"v_switch,omitempty"`
+	AllowPromisc      bool               `json:"allow_promisc,omitempty"`
+	AllowMacChange    bool               `json:"allow_mac_change,omitempty"`
+	AllowTransitForge bool               `json:"allow_transit_forge,omitempty"`
+	Ports             []*ESXHostPGrpPort `json:"ports,omitempty"`
+}
+
+type ESXHostPGrpPort struct {
+	Key     string   `json:"key"`
+	MacAddr []string `json:"mac_addr"`
+	Type    string   `json:"type"`
 }
 
 type ESXNetNIC struct {
@@ -65,13 +74,7 @@ type ESXNetNIC struct {
 	IpAddr     string `json:"ip_addr,omitempty"`
 	SubnetMask string `json:"subnet_mask,omitempty"`
 	UsingDHCP  bool   `json:"using_dhcp,omitempty"`
-}
-
-type ESXRouteTable struct {
-	DestIP     string `json:"dest_ip,omitempty"`
-	SubnetMask string `json:"subnet_mask,omitempty"`
 	GatewayIP  string `json:"gateway_ip,omitempty"`
-	NetIf      string `json:"net_if,omitempty"`
 }
 
 type esxHostAcitveDirectoryAuthenticationInfo struct {
@@ -181,11 +184,75 @@ func (esxhbi *ESXHostBasicInfo) GetInfoFunc1() (err error) {
 			}
 		}
 		// vswitch
+		esxhbi.NetVSwitches = convertHostNetVSW2External(hsys.Config.Network.Vswitch)
+		esxhbi.NetVPortGroups = convertPortGrps2External(hsys.Config.Network.Portgroup)
 		// network ifs
+		esxhbi.NetIfs = showNICs(hsys.Config.Network)
+		// routes
+
 	} else {
 		return ErrPropertiesIsNil
 	}
 	return nil
+}
+
+func showNICs(n *types.HostNetworkInfo) []*ESXNetNIC {
+	res := make([]*ESXNetNIC, 0)
+	for _, v := range n.Pnic {
+		i1 := &ESXNetNIC{
+			Name:       v.Key,
+			MacAddr:    v.Mac,
+			Type:       v.Driver,
+			IsVirtual:  false,
+			IpAddr:     "-",
+			SubnetMask: "-",
+			UsingDHCP:  false,
+			GatewayIP:  "-",
+		}
+		res = append(res, i1)
+	}
+	for _, v := range n.Vnic {
+		i2 := &ESXNetNIC{
+			Name:       v.Key,
+			MacAddr:    v.Spec.Mac,
+			Type:       v.Device,
+			IsVirtual:  true,
+			IpAddr:     v.Spec.Ip.IpAddress,
+			SubnetMask: v.Spec.Ip.SubnetMask,
+			UsingDHCP:  v.Spec.Ip.Dhcp,
+			GatewayIP: func() string {
+				if v.Spec.IpRouteSpec != nil {
+					if v.Spec.IpRouteSpec.IpRouteConfig != nil {
+						return v.Spec.IpRouteSpec.IpRouteConfig.(*types.HostIpRouteConfig).DefaultGateway
+					}
+				}
+				return "-"
+			}(),
+		}
+		res = append(res, i2)
+	}
+	return res
+}
+
+func convertPortGrps2External(g []types.HostPortGroup) []*ESXHostPGrp {
+
+}
+
+func convertHostNetVSW2External(vsws []types.HostVirtualSwitch) []*ESXHostVSW {
+	if len(vsws) == 0 {
+		return nil
+	}
+	res := make([]*ESXHostVSW, len(vsws))
+	for i := range vsws {
+		// loop through port group
+		res[i] = &ESXHostVSW{
+			Name:      vsws[i].Key,
+			MTU:       vsws[i].Mtu,
+			BridgedTo: vsws[i].Pnic,      // []string, to phy-nic
+			PortGroup: vsws[i].Portgroup, // []esxNetNic
+		}
+	}
+	return res
 }
 
 func convertHostCertInfo2External(ci *object.HostCertificateInfo) *ESXHostCert {
