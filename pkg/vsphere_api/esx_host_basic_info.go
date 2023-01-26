@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	log "github.com/sirupsen/logrus"
+	"github.com/vmware/govmomi/govc/host/esxcli"
 	"github.com/vmware/govmomi/object"
 	"github.com/vmware/govmomi/property"
 	"github.com/vmware/govmomi/vim25/mo"
@@ -19,6 +20,8 @@ var (
 type ESXHostBasicInfo struct {
 	moref         *object.HostSystem `json:"-"`
 	InventoryPath string             `json:"inventory_path"`
+	inited        bool               `json:"-"`
+	esxcliExec    *esxcli.Executor   `json:"-"`
 	// esxi service
 	Services []*ESXHostService `json:"services"`
 	// esxi authentication info
@@ -126,13 +129,48 @@ func (vsc *vSphereClient) RetrieveESXiHostBasicInfo(vcbi *VCBasicInfo) error {
 			return err
 		}
 		err = esxBInfo.GetInfoFunc1()
+		if err != nil {
+			return err
+		}
+		err = esxBInfo.ExposeESXCliv2()
+		if err != nil {
+			return err
+		}
+		err = esxBInfo.GetInfoFunc2()
+		if err != nil {
+			return err
+		}
 	}
 	return nil
+}
+
+func (esxhbi *ESXHostBasicInfo) ExposeESXCliv2() (err error) {
+	if esxhbi.inited {
+		esxhbi.esxcliExec, err = esxcli.NewExecutor(GlobalClient.GetSOAPClient(), esxhbi.moref)
+		if err != nil {
+			log.Errorln("initiate esxcli executor failed: ", err)
+			return err
+		}
+		return nil
+	}
+	return ErrPrerequisitesNotSatisfied
+}
+
+func (esxhbi *ESXHostBasicInfo) GetInfoFunc2() error {
+	// esxcli must be run using real esxi instance, the simulator does NOT implement necessary method
+	if esxhbi.esxcliExec == nil {
+		return ErrPrerequisitesNotSatisfied
+	}
+	//TODO: execute command list, command are recorded in docs
+	// save as csv file, filename: machineName-CommandName-Timestamp.csv
+	//TODO: optimize output file location, must be saved to seperator folder, named by current date using YYYYMMDD
+
 }
 
 func (esxhbi *ESXHostBasicInfo) Init(h *object.HostSystem, invtpath string) error {
 	esxhbi.moref = h
 	esxhbi.InventoryPath = invtpath
+	esxhbi.inited = true
 	return nil
 }
 

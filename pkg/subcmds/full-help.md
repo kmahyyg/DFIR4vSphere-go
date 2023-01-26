@@ -83,18 +83,47 @@ For ESXi-standalone host:
     - [ ] | (If Version >= 7.0.2) Get System Encryption Settings
     - [ ] | (If Version >= 7.0.2) Get System Guest Store Repository
     - [ ] | (If Version >= 7.0.2) (list changed items only) List System Advanced Settings using Delta method
-    - [ ] | (If Version >= 7.0.2) (list changed items only) List System Settings Kernel List
+    - [ ] | (If Version >= 7.0.2) (list changed items only) List System Kernel Settings List
     - [ ] | (If Version >= 7.0.2) Get System SysLog Config
     - [ ] | (If Version >= 7.0.0) Get System BaseImage Information
     - [ ] | (If Version >= 7.0.0) Get Software VIBs
     - [ ] | (If Version >= 7.0.0) Get Software Profiles
     - [x] | (If Version >= 7.0.0) List Storage IOFilters (covered in HostSystem "config" property above)
+    - [ ] | List storage filesystem
     - [x] | Network interface IPs and routes (covered in HostSystem "config" property above)
     - [ ] | Network neighbor list using ARP cache
     - [x] | Network DNS IPs (covered in HostSystem "config" property above)
     - [ ] | Network Connections status
     - [ ] | Network PortGroup VM Lists
     - [x] | Network vSwitch List (covered in HostSystem "config" property above)
+
+The corresponding `esxcli` command lists are, without prefix `govc host.esxcli` :
+- [x] done | `system version get`
+- `system account list`
+- `system permission list`
+- `system module list`
+- `system process list`
+- [x] done | `system security certificatestore list`
+- `system settings encryption get`
+- `system settings gueststore repository get`
+- `system settings advanced list`
+- `system settings kernel list`
+- `system syslog config get`
+- `software vib signature verify`
+- `software baseimage get`
+- `software vib get`
+- `software profile get`
+- [x] done | `storage iofilter list`
+- `storage filesystem list`
+- [x] done | `network ip interface ipv4 get`
+- [x] done | `network ip interface ipv6 get`
+- [x] done | `network ip route ipv4 list`
+- [x] done | `network ip route ipv6 list`
+- `network ip neighbor list`
+- [x] done | `network ip dns server list`
+- `network ip connection list`
+- `network vm list`
+- [x] done | `network vswitch standard list`
 
 For vCenter-managed ESXi host:
 - In addition to standalone ESXi Host, will do following things:
