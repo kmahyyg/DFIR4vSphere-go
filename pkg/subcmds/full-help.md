@@ -89,12 +89,12 @@ For ESXi-standalone host:
     - [ ] | (If Version >= 7.0.0) Get Software VIBs
     - [ ] | (If Version >= 7.0.0) Get Software Profiles
     - [x] | (If Version >= 7.0.0) List Storage IOFilters (covered in HostSystem "config" property above)
-    - [ ] | Network interface IPs and routes (covered in HostSystem "config" property above)
+    - [x] | Network interface IPs and routes (covered in HostSystem "config" property above)
     - [ ] | Network neighbor list using ARP cache
     - [x] | Network DNS IPs (covered in HostSystem "config" property above)
     - [ ] | Network Connections status
     - [ ] | Network PortGroup VM Lists
-    - [ ] | Network vSwitch List (covered in HostSystem "config" property above)
+    - [x] | Network vSwitch List (covered in HostSystem "config" property above)
 
 For vCenter-managed ESXi host:
 - In addition to standalone ESXi Host, will do following things:

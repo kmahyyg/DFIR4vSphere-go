@@ -61,9 +61,11 @@ type ESXHostPGrp struct {
 }
 
 type ESXHostPGrpPort struct {
-	Key     string   `json:"key"`
-	MacAddr []string `json:"mac_addr"`
-	Type    string   `json:"type"`
+	Key         string   `json:"key"`
+	MacAddr     []string `json:"mac_addr"`
+	Type        string   `json:"type"`
+	ActiveNICs  []string `json:"active_nics"`
+	StandbyNICs []string `json:"standby_nics"`
 }
 
 type ESXNetNIC struct {
@@ -188,8 +190,6 @@ func (esxhbi *ESXHostBasicInfo) GetInfoFunc1() (err error) {
 		esxhbi.NetVPortGroups = convertPortGrps2External(hsys.Config.Network.Portgroup)
 		// network ifs
 		esxhbi.NetIfs = showNICs(hsys.Config.Network)
-		// routes
-
 	} else {
 		return ErrPropertiesIsNil
 	}
@@ -235,7 +235,52 @@ func showNICs(n *types.HostNetworkInfo) []*ESXNetNIC {
 }
 
 func convertPortGrps2External(g []types.HostPortGroup) []*ESXHostPGrp {
-
+	if len(g) == 0 {
+		return nil
+	}
+	res := make([]*ESXHostPGrp, len(g))
+	for i := range g {
+		elem1 := &ESXHostPGrp{
+			Key:               g[i].Key,
+			VSwitch:           g[i].Vswitch,
+			AllowPromisc:      *g[i].ComputedPolicy.Security.AllowPromiscuous,
+			AllowMacChange:    *g[i].ComputedPolicy.Security.MacChanges,
+			AllowTransitForge: *g[i].ComputedPolicy.Security.ForgedTransmits,
+			Ports: func() []*ESXHostPGrpPort {
+				if g[i].Port != nil {
+					res2 := make([]*ESXHostPGrpPort, len(g[i].Port))
+					for i2 := range g[i].Port {
+						elem2 := &ESXHostPGrpPort{
+							Key:     g[i].Port[i2].Key,
+							MacAddr: g[i].Port[i2].Mac,
+							Type:    g[i].Port[i2].Type,
+							ActiveNICs: func() []string {
+								if g[i].ComputedPolicy.NicTeaming != nil {
+									if g[i].ComputedPolicy.NicTeaming.NicOrder != nil {
+										return g[i].ComputedPolicy.NicTeaming.NicOrder.ActiveNic
+									}
+								}
+								return nil
+							}(),
+							StandbyNICs: func() []string {
+								if g[i].ComputedPolicy.NicTeaming != nil {
+									if g[i].ComputedPolicy.NicTeaming.NicOrder != nil {
+										return g[i].ComputedPolicy.NicTeaming.NicOrder.StandbyNic
+									}
+								}
+								return nil
+							}(),
+						}
+						res2[i] = elem2
+					}
+					return res2
+				}
+				return nil
+			}(),
+		}
+		res[i] = elem1
+	}
+	return res
 }
 
 func convertHostNetVSW2External(vsws []types.HostVirtualSwitch) []*ESXHostVSW {
@@ -249,7 +294,7 @@ func convertHostNetVSW2External(vsws []types.HostVirtualSwitch) []*ESXHostVSW {
 			Name:      vsws[i].Key,
 			MTU:       vsws[i].Mtu,
 			BridgedTo: vsws[i].Pnic,      // []string, to phy-nic
-			PortGroup: vsws[i].Portgroup, // []esxNetNic
+			PortGroup: vsws[i].Portgroup, // []string
 		}
 	}
 	return res
