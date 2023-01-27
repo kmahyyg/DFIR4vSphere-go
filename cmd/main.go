@@ -20,7 +20,8 @@ import (
 func init() {
 	// create log file
 	var err error
-	common.LogFileFD, err = os.Create("working.log.json")
+	_ = os.MkdirAll("output", 0755)
+	common.LogFileFD, err = os.Create("output/working.log.json")
 	if err != nil {
 		panic(err)
 	}

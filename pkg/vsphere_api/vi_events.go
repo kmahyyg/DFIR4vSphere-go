@@ -206,7 +206,7 @@ func (vsc *vSphereClient) GetEventsFromMgr(lightMode bool, dcList []types.Manage
 	log.Debugln("requesting all related events successfully finished. start post-processing.")
 	// do post processing like sorting, printing, saving stuffs
 	wdir, _ := os.Getwd()
-	wDstFilePath := filepath.Join(wdir, "VIEvents_"+strconv.FormatInt(time.Now().Unix(), 10)+".csv")
+	wDstFilePath := filepath.Join(wdir, "output", "VIEvents_"+strconv.FormatInt(time.Now().Unix(), 10)+".csv")
 	// create output file
 	outputFd, err := os.Create(wDstFilePath)
 	if err != nil {

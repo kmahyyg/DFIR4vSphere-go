@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
 	"sync"
 )
 
@@ -117,7 +118,8 @@ func (vsc *vSphereClient) progressedDownloader(dstFile string, url string, dwnld
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode == 200 {
-		f, err := os.OpenFile(dstFile, os.O_CREATE|os.O_WRONLY, 0644)
+		finalDstFilePath := filepath.Join("output", dstFile)
+		f, err := os.OpenFile(finalDstFilePath, os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
 			log.Errorln("cannot write to / create dest file, err: ", err)
 			return
