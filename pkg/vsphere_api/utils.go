@@ -1,10 +1,9 @@
 package vsphere_api
 
 import (
-	"github.com/vmware/govmomi/vim25/types"
-	"strings"
+	gonanoid "github.com/matoous/go-nanoid"
 )
 
-func objRefTypeMatch(inref types.ManagedObjectReference, outref types.ManagedObjectReference) bool {
-	return strings.EqualFold(inref.Type, outref.Type)
+func GetNanoID(length int) (string, error) {
+	return gonanoid.ID(length)
 }

@@ -25,6 +25,8 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+	defer common.LogFileFD.Close()
+	defer common.LogFileFD.Sync()
 	logMWriter := io.MultiWriter(common.LogFileFD, os.Stderr)
 	log.SetOutput(logMWriter)
 	// set json format

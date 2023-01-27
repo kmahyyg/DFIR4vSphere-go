@@ -130,7 +130,7 @@ func (vsc *vSphereClient) RetrieveESXiHostBasicInfo(vcbi *VCBasicInfo) error {
 		}
 		err = esxBInfo.GetInfoFunc1()
 		if err != nil {
-			return err
+			log.Errorln("ESXiHostBasicInfoF1, err:", err)
 		}
 		err = esxBInfo.ExposeESXCliv2()
 		if err != nil {
@@ -138,7 +138,7 @@ func (vsc *vSphereClient) RetrieveESXiHostBasicInfo(vcbi *VCBasicInfo) error {
 		}
 		err = esxBInfo.GetInfoFunc2()
 		if err != nil {
-			return err
+			log.Errorln("ESXiHostBasicInfoF2, err:", err)
 		}
 	}
 	return nil
@@ -154,17 +154,6 @@ func (esxhbi *ESXHostBasicInfo) ExposeESXCliv2() (err error) {
 		return nil
 	}
 	return ErrPrerequisitesNotSatisfied
-}
-
-func (esxhbi *ESXHostBasicInfo) GetInfoFunc2() error {
-	// esxcli must be run using real esxi instance, the simulator does NOT implement necessary method
-	if esxhbi.esxcliExec == nil {
-		return ErrPrerequisitesNotSatisfied
-	}
-	//TODO: execute command list, command are recorded in docs
-	// save as csv file, filename: machineName-CommandName-Timestamp.csv
-	//TODO: optimize output file location, must be saved to seperator folder, named by current date using YYYYMMDD
-
 }
 
 func (esxhbi *ESXHostBasicInfo) Init(h *object.HostSystem, invtpath string) error {

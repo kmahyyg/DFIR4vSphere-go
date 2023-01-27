@@ -98,12 +98,12 @@ For ESXi-standalone host:
     - [x] | Network vSwitch List (covered in HostSystem "config" property above)
 
 The corresponding `esxcli` command lists are, without prefix `govc host.esxcli` :
-- [x] done | `system version get`
+- [x] done while retrieving other object properties | `system version get`
 - `system account list`
 - `system permission list`
 - `system module list`
 - `system process list`
-- [x] done | `system security certificatestore list`
+- [x] done while retrieving other object properties | `system security certificatestore list`
 - `system settings encryption get`
 - `system settings gueststore repository get`
 - `system settings advanced list`
@@ -113,17 +113,17 @@ The corresponding `esxcli` command lists are, without prefix `govc host.esxcli` 
 - `software baseimage get`
 - `software vib get`
 - `software profile get`
-- [x] done | `storage iofilter list`
+- [x] done while retrieving other object properties | `storage iofilter list`
 - `storage filesystem list`
-- [x] done | `network ip interface ipv4 get`
-- [x] done | `network ip interface ipv6 get`
-- [x] done | `network ip route ipv4 list`
-- [x] done | `network ip route ipv6 list`
+- [x] done while retrieving other object properties | `network ip interface ipv4 get`
+- [x] done while retrieving other object properties | `network ip interface ipv6 get`
+- [x] done while retrieving other object properties | `network ip route ipv4 list`
+- [x] done while retrieving other object properties | `network ip route ipv6 list`
 - `network ip neighbor list`
-- [x] done | `network ip dns server list`
+- [x] done while retrieving other object properties | `network ip dns server list`
 - `network ip connection list`
 - `network vm list`
-- [x] done | `network vswitch standard list`
+- [x] done while retrieving other object properties | `network vswitch standard list`
 
 For vCenter-managed ESXi host:
 - In addition to standalone ESXi Host, will do following things:

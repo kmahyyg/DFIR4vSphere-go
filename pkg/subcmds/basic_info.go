@@ -57,7 +57,7 @@ func RetrieveBasicInformation() {
 		log.Errorln("retr esxi info fail, err:", err)
 		return
 	}
-	// marshal vcbi
-	//TODO
+	//todo: marshal vcbi and save
+
 	return
 }
