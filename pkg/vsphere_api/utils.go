@@ -5,5 +5,5 @@ import (
 )
 
 func GetNanoID(length int) (string, error) {
-	return gonanoid.ID(length)
+	return gonanoid.Generate("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", length)
 }
