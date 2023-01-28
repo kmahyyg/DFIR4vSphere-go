@@ -24,15 +24,16 @@ type vcUser struct {
 }
 
 type VCBasicInfo struct {
-	ESXHostList           []string               `json:"esx_host_names"`
+	IsVCenter             bool                   `json:"is_vcenter"`
+	ESXHostList           []string               `json:"esx_host_names,omitempty"`
 	ESXHostObjs           []*object.HostSystem   `json:"-"`
-	VCAuthoriRole         []*vcAuthorizationRole `json:"vc_authorization_roles"`
-	VCAuthoriPerm         []*vcPermission        `json:"vc_authorization_permissions"`
-	EventMaxAge           int                    `json:"event_max_age"`
-	SSOPasswordPolicyDesc string                 `json:"sso_password_policy"`
-	SSOIDPDesc            []*vcIdentityProvider  `json:"sso_idp"`
-	SSOGroups             []*vcGroup             `json:"sso_groups"`
-	SSOUsers              []*vcUser              `json:"sso_users"`
+	VCAuthoriRole         []*vcAuthorizationRole `json:"vc_authorization_roles,omitempty"`
+	VCAuthoriPerm         []*vcPermission        `json:"vc_authorization_permissions,omitempty"`
+	EventMaxAge           int                    `json:"event_max_age,omitempty"`
+	SSOPasswordPolicyDesc string                 `json:"sso_password_policy,omitempty"`
+	SSOIDPDesc            []*vcIdentityProvider  `json:"sso_idp,omitempty"`
+	SSOGroups             []*vcGroup             `json:"sso_groups,omitempty"`
+	SSOUsers              []*vcUser              `json:"sso_users,omitempty"`
 }
 
 type vcIdentityProviders struct {

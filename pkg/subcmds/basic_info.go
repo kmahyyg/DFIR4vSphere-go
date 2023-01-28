@@ -12,7 +12,9 @@ import (
 )
 
 func RetrieveBasicInformation() {
-	vcbi := &vsphere_api.VCBasicInfo{}
+	vcbi := &vsphere_api.VCBasicInfo{
+		IsVCenter: vsphere_api.GlobalClient.IsVCenter(),
+	}
 	vcbi.ESXHostObjs = make([]*object.HostSystem, 0)
 	// list esxi host
 	err := vsphere_api.GlobalClient.ListEsxiHost()
