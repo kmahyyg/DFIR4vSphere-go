@@ -12,7 +12,9 @@ Build:
 ./scripts/cleanup.sh
 go mod download
 go mod tidy
-./scripts/build.sh
+export BUILD_ENV=release
+./scripts/build.sh bin/dfir4vsphere-go ./cmd/main.go
+./scripts/macos_universal.sh dfir4vsphere-go
 ```
 
 # Usage
