@@ -298,7 +298,7 @@ func convertPortGrps2External(g []types.HostPortGroup) []*ESXHostPGrp {
 								return nil
 							}(),
 						}
-						res2[i] = elem2
+						res2[i2] = elem2
 					}
 					return res2
 				}
