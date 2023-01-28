@@ -9,11 +9,9 @@ export CGO_ENABLED=0
 export BUILD_GCFLAG="all=-N\ -l"
 
 export DBG_ADDITIONAL_LDFLAG=""
-export REL_ADDITIONAL_LDFLAG="-s\ -w"
+export REL_ADDITIONAL_LDFLAG="-s -w"
 
-export DBG_GOC="go"
-export REL_GOC="garble"
-export OBFS_PARAM="-literals -seed=random -tiny"
+export GOC="go"
 
 export REL_GOFLAG="-trimpath"
 
@@ -41,7 +39,7 @@ if [[ ${BUILD_ENV} = "release" ]]; then
     GOARCH=${PLATFORM#*/}
     BIN_FILENAME="${COMPILED_EXE_BASENAME}-${GOOS}-${GOARCH}"
     if [[ "${GOOS}" == "windows" ]]; then BIN_FILENAME="${BIN_FILENAME}.exe"; fi
-    CMD="CGO_ENABLED=0 GOOS=${GOOS} GOARCH=${GOARCH} ${REL_GOC} ${OBFS_PARAM} build ${REL_GOFLAG} -ldflags \"${BUILD_LDFLAG} ${REL_ADDITIONAL_LDFLAG}\" -o ${BIN_FILENAME} ${PKG_TOBUILD}"
+    CMD="CGO_ENABLED=0 GOOS=${GOOS} GOARCH=${GOARCH} ${GOC} build ${REL_GOFLAG} -ldflags \"${BUILD_LDFLAG} ${REL_ADDITIONAL_LDFLAG}\" -o ${BIN_FILENAME} ${PKG_TOBUILD}"
     echo "${CMD}"
     eval "${CMD}" || FAILURES="${FAILURES} ${PLATFORM}"
     if [[ "${GOOS}" != "darwin" ]]; then
@@ -49,7 +47,7 @@ if [[ ${BUILD_ENV} = "release" ]]; then
     fi
   done
 else
-  CMD="CGO_ENABLED=0 ${DBG_GOC} build -gcflags ${BUILD_GCFLAG} -ldflags \"${BUILD_LDFLAG} ${DBG_ADDITIONAL_LDFLAG}\" -o ${COMPILED_EXE_BASENAME} ${PKG_TOBUILD}"
+  CMD="CGO_ENABLED=0 ${GOC} build -gcflags ${BUILD_GCFLAG} -ldflags \"${BUILD_LDFLAG} ${DBG_ADDITIONAL_LDFLAG}\" -o ${COMPILED_EXE_BASENAME} ${PKG_TOBUILD}"
   echo "${CMD}"
   eval "${CMD}"
   exit 0
