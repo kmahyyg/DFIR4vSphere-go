@@ -2,7 +2,7 @@
 
 This is an interactive command-line tool to help you do forensics job for vSphere products.
 
-Version v0.0.2-snapshot3-1-gc3061a0
+Version v0.1.1
 
 Full Commands:
 - `support_bundle`

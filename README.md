@@ -2,7 +2,7 @@
 
 DFIR4vSphere Golang Implementation
 
-v0.1.2 should be a working version. Report to Issue if any problem has been discovered.
+v0.1.1 should be a working version. Report to Issue if any problem has been discovered.
 
 # Build and Compile
 
