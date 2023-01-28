@@ -11,4 +11,3 @@ fi
 FILE_BASENAME="$1"
 
 lipo -create -output "./bin/${FILE_BASENAME}-darwin-universal" "./bin/${FILE_BASENAME}-darwin-amd64" "./bin/${FILE_BASENAME}-darwin-arm64"
-rm -f "./bin/${FILE_BASENAME}-darwin-arm64" "./bin/${FILE_BASENAME}-darwin-amd64"
