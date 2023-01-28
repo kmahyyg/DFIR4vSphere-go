@@ -63,13 +63,27 @@ func main() {
 			Prompt: &survey.Input{
 				Message: "Proxy URL?  (If not, press enter)",
 				Help:    "Format: (http://HOST:PORT, supported protocol: http/https/socks5), Example: \"http://127.0.0.1:3128\".",
+				Suggest: func(toComplete string) []string {
+					fEnv1 := os.Getenv("http_proxy")
+					if fEnv1 != "" {
+						return []string{fEnv1}
+					}
+					return nil
+				},
 			},
 		},
 		{
 			Name: "vsphere_hostport",
 			Prompt: &survey.Input{
 				Message: "vSphere URL? (https://HOST:PORT, default 443)",
-				Help:    "Example: \"https://192.168.56.128:443\", vCenter URL or ESXi URL here ",
+				Help:    "Example: \"https://192.168.56.128:443\", vCenter URL or ESXi URL here, Please add PORT if not 443.",
+				Suggest: func(toComplete string) []string {
+					fEnv1 := os.Getenv("VSPHERE_URL")
+					if fEnv1 != "" {
+						return []string{fEnv1}
+					}
+					return nil
+				},
 			},
 			Validate: survey.Required,
 		},
@@ -79,12 +93,17 @@ func main() {
 				Message: "Administrator Username?",
 				Help: "By default, vCenter use: administrator@vsphere.local, ESXi use: root; " +
 					"if you are not using password-based authentication, we are not supported currently.",
+				Suggest: func(toComplete string) []string {
+					return []string{"administrator@vsphere.local", "root"}
+				},
 			},
 			Validate: survey.Required,
 		},
 		{
-			Name:     "vsphere_pass",
-			Prompt:   &survey.Password{Message: "Administrator Password?"},
+			Name: "vsphere_pass",
+			Prompt: &survey.Password{
+				Message: "Administrator Password?",
+			},
 			Validate: survey.Required,
 		},
 		{
