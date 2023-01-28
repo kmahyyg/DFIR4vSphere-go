@@ -63,6 +63,7 @@ func RetrieveBasicInformation() {
 		log.Errorln("retr esxi info fail, err:", err)
 		return
 	}
+	log.Infoln("retr esxi info finished.")
 	// marshal vcbi and save
 	vcbiBytes, err := json.MarshalIndent(vcbi, "", "    ")
 	if err != nil {
@@ -70,6 +71,8 @@ func RetrieveBasicInformation() {
 		return
 	}
 	vcbiOutFd, err := os.Create("output/VCenter_BasicInfo_" + strconv.FormatInt(time.Now().Unix(), 10) + ".json")
+	defer vcbiOutFd.Close()
+	defer vcbiOutFd.Sync()
 	if err != nil {
 		log.Errorln("create vcbi marshal output file, err:", err)
 		return
@@ -79,5 +82,6 @@ func RetrieveBasicInformation() {
 		log.Errorln("write vcbi json to file failed, err: ", err)
 		return
 	}
+	log.Infoln("vcbi info stored in json. operation finished.")
 	return
 }

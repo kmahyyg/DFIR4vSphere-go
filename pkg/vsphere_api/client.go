@@ -193,7 +193,9 @@ func (vsc *vSphereClient) Logout() (err error) {
 	}
 	if vsc.ssoClient != nil {
 		err = vsc.ssoClient.Logout(context.Background())
-		log.Errorln("sso client logout, failed: ", err)
+		if err != nil {
+			log.Errorln("ssoadmin client logout failed: ", err)
+		}
 	}
 	return err
 }
