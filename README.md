@@ -7,6 +7,7 @@ DFIR4vSphere Golang Implementation [WIP]
 Build:
 
 ```shell
+./scripts/cleanup.sh
 go mod download
 go mod tidy
 ./scripts/build.sh
@@ -14,11 +15,17 @@ go mod tidy
 
 # Usage
 
-Check [docs](/docs/get-started.md) .
+The program will read `http_proxy` and `VSPHERE_URL` to suggest you for some input.
 
-For detailed commands: Check [full help docs](/docs/full-help.md).
+For detailed commands: Check [full help docs](/pkg/subcmds/full-help.md).
 
 Please only use `exit` command for exit, if not necessary, do not use Ctrl-C to exit directly.
+
+## Help! I can't login into vCenter or VCSA or ESXi Management, What should I do for resetting or unlocking?
+
+- for VCSA root account: https://kb.vmware.com/s/article/2147144
+- for ESXi host: https://kb.vmware.com/s/article/1317898
+- for vCenter SSO accounts (like `administrator@vsphere.local`): https://kb.vmware.com/s/article/2146224
 
 # Debug
 

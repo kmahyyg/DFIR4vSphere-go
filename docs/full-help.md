@@ -1,1 +1,0 @@
-../pkg/subcmds/full-help.md
