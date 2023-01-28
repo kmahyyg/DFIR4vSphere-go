@@ -100,6 +100,21 @@ func (vsc *vSphereClient) GetSOAPClient() *vim25.Client {
 	return vsc.vmwSoapClient
 }
 
+func (vsc *vSphereClient) soapConfigFunc(sc *soap.Client) error {
+	// before login, configure client
+	if vsc.httpProxy != nil {
+		sc.DefaultTransport().Proxy = http.ProxyURL(vsc.httpProxy)
+		_ = os.Setenv("http_proxy", vsc.httpProxy.String())
+		log.Debugln("http_proxy environment variable set.")
+	}
+	if vsc.skipTLS {
+		sc.DefaultTransport().TLSClientConfig.InsecureSkipVerify = vsc.skipTLS
+	}
+	sc.UserAgent = "DFIR4vSphere-Go/" + common.VersionStr
+	// now this client is initialized without error
+	return nil
+}
+
 func (vsc *vSphereClient) Login2SSOMgmt() (*ssoadmin.Client, error) {
 	var err error
 	authCtx := context.Background()
@@ -128,7 +143,8 @@ func (vsc *vSphereClient) Login2SSOMgmt() (*ssoadmin.Client, error) {
 		log.Errorln("token issue from sts error, err:", err)
 		return nil, err
 	}
-	vsc.ssoClient.RoundTripper = vsc.vmwSoapClient.RoundTripper
+	// before login, configure client
+	err = vsc.soapConfigFunc(vsc.ssoClient.Client)
 	err = vsc.ssoClient.Login(vsc.ssoClient.WithHeader(authCtx, authHeader))
 	if err != nil {
 		log.Errorln("sso client login failed, err:", err)
@@ -140,22 +156,8 @@ func (vsc *vSphereClient) Login2SSOMgmt() (*ssoadmin.Client, error) {
 // LoginViaPassword will try to log in using credentials, if Token is required, you may query STS, then
 // issue ticket or token yourself.
 func (vsc *vSphereClient) LoginViaPassword() (err error) {
-	// before login, configure client
-	soapConfigFunc := func(sc *soap.Client) error {
-		if vsc.httpProxy != nil {
-			sc.DefaultTransport().Proxy = http.ProxyURL(vsc.httpProxy)
-			_ = os.Setenv("http_proxy", vsc.httpProxy.String())
-			log.Debugln("http_proxy environment variable set.")
-		}
-		if vsc.skipTLS {
-			sc.DefaultTransport().TLSClientConfig.InsecureSkipVerify = vsc.skipTLS
-		}
-		sc.UserAgent = "DFIR4vSphere-Go/" + common.VersionStr
-		// now this client is initialized without error
-		return nil
-	}
 	// start login
-	loginErr := vsc.curSession.Login(context.Background(), vsc.vmwSoapClient, soapConfigFunc)
+	loginErr := vsc.curSession.Login(context.Background(), vsc.vmwSoapClient, vsc.soapConfigFunc)
 	if loginErr != nil {
 		return loginErr
 	} else {
