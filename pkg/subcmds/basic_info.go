@@ -1,10 +1,14 @@
 package subcmds
 
 import (
+	"encoding/json"
 	"github.com/kmahyyg/DFIR4vSphere-go/pkg/vsphere_api"
 	log "github.com/sirupsen/logrus"
 	"github.com/vmware/govmomi/list"
 	"github.com/vmware/govmomi/object"
+	"os"
+	"strconv"
+	"time"
 )
 
 func RetrieveBasicInformation() {
@@ -59,7 +63,21 @@ func RetrieveBasicInformation() {
 		log.Errorln("retr esxi info fail, err:", err)
 		return
 	}
-	//todo: marshal vcbi and save
-
+	// marshal vcbi and save
+	vcbiBytes, err := json.MarshalIndent(vcbi, "", "    ")
+	if err != nil {
+		log.Errorln("json marshal vcbi, err: ", err)
+		return
+	}
+	vcbiOutFd, err := os.Create("output/VCenter_BasicInfo_" + strconv.FormatInt(time.Now().Unix(), 10) + ".json")
+	if err != nil {
+		log.Errorln("create vcbi marshal output file, err:", err)
+		return
+	}
+	_, err = vcbiOutFd.Write(vcbiBytes)
+	if err != nil {
+		log.Errorln("write vcbi json to file failed, err: ", err)
+		return
+	}
 	return
 }
