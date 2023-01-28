@@ -118,3 +118,4 @@ bin/
 
 # this git version file must be generated each time on the fly using scripts/build.sh
 pkg/common/gitversion.txt
+output/
