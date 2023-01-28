@@ -14,7 +14,9 @@ import (
 	"github.com/vmware/govmomi/vim25"
 	"github.com/vmware/govmomi/vim25/methods"
 	"github.com/vmware/govmomi/vim25/soap"
+	"net/http"
 	"net/url"
+	"os"
 	"sync"
 	"time"
 )
@@ -77,6 +79,15 @@ func (vsc *vSphereClient) Init(soapUrl *url.URL, skipTLS bool, proxyURL *url.URL
 // NewClient create instance and build session cache to make sure session not leaked,
 // must be called after Init() and before any other function call
 func (vsc *vSphereClient) NewClient() error {
+	// set http proxy globally if requested
+	if vsc.httpProxy != nil {
+		http.DefaultTransport.(*http.Transport).Proxy = http.ProxyURL(vsc.httpProxy)
+		_ = os.Setenv("http_proxy", vsc.httpProxy.String())
+		log.Debugln("http_proxy environment variable set.")
+	}
+	if vsc.skipTLS {
+		http.DefaultTransport.(*http.Transport).TLSClientConfig.InsecureSkipVerify = vsc.skipTLS
+	}
 	// rebuild the whole mu and context
 	vsc.dataCtx = context.WithValue(context.TODO(), "data", make(map[string]interface{}))
 	vsc.mu = &sync.RWMutex{}
