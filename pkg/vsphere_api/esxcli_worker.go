@@ -56,17 +56,21 @@ func (esxhbi *ESXHostBasicInfo) GetInfoFunc2() (err error) {
 			return err
 		}
 	}
+	log.Infoln("esxcli worker, machine name: ", machineName)
 	for k, v := range esxCLIcmdLst {
+		log.Infoln("esxcli worker, currently running: ", k)
 		resp, err := esxhbi.esxcliExec.Run(strings.Split(v, " "))
 		if err != nil {
 			log.Errorln("ESXCLI Exec -", k, ", Err: ", err)
 			continue
 		}
+		log.Debugln("esxcli worker,", k, " finishing running.")
 		err = FormatAndSave(machineName, k, resp)
 		if err != nil {
 			log.Errorln("ESXCLI Format and Save -", k, " Err:", err)
 			continue
 		}
+		log.Debugln("esxcli worker,", k, " resp formatted and saved.")
 	}
 	return nil
 }
@@ -78,6 +82,7 @@ func FormatAndSave(machineName string, cateName string, resp *esxcli.Response) (
 	}
 	// sort data before save
 	var fieldKeys []string
+	var fieldHeaders []string
 	// create and save
 	var fDstPath = "output/" + machineName + "-" + cateName + "-" + strconv.FormatInt(time.Now().Unix(), 10)
 	// create corresponding writer
@@ -86,23 +91,26 @@ func FormatAndSave(machineName string, cateName string, resp *esxcli.Response) (
 	switch formatType {
 	case "table":
 		// use csv
-		fieldKeys = resp.Info.Hints.Fields()
+		fieldHeaders = resp.Info.Hints.Fields()
 		alreadyTabled = true
 		fallthrough
 	default:
 		// use json
-		if alreadyTabled && len(fieldKeys) != 0 {
+		if alreadyTabled && len(fieldHeaders) != 0 {
 			fDstPath += ".csv"
+			// after sort, key should be matched with headers, since they are sharing same prefix char
+			sort.Strings(fieldHeaders)
 		} else {
 			fDstPath += ".json"
 		}
 		// detect if table failed or not initialized
-		if len(fieldKeys) == 0 {
+		if len(fieldHeaders) == 0 {
 			alreadyTabled = false
 			// only get first result to append field key
-			for key := range resp.Values[0] {
-				fieldKeys = append(fieldKeys, key)
-			}
+		}
+		// always use keys from values, since headers may be different from keys
+		for key := range resp.Values[0] {
+			fieldKeys = append(fieldKeys, key)
 		}
 		// sort to make sure all in stable order
 		sort.Strings(fieldKeys)
@@ -117,10 +125,18 @@ func FormatAndSave(machineName string, cateName string, resp *esxcli.Response) (
 		// govc/host/esxcli/response.go:24   type Values map[string][]string
 		if alreadyTabled {
 			cwr := csv.NewWriter(fd)
-			err = cwr.Write(fieldKeys)
-			if err != nil {
-				log.Errorln("csv write error:", err)
-				return err
+			if len(fieldHeaders) != 0 {
+				err = cwr.Write(fieldHeaders)
+				if err != nil {
+					log.Errorln("csv write hd error:", err)
+					return err
+				}
+			} else {
+				err = cwr.Write(fieldKeys)
+				if err != nil {
+					log.Errorln("csv write hd error:", err)
+					return err
+				}
 			}
 			for _, sv := range resp.Values {
 				// each esxcli.Value is a result
