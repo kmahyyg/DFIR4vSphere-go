@@ -110,7 +110,7 @@ func main() {
 			Name: "skip_tls_verify",
 			Prompt: &survey.Confirm{
 				Message: "Skip TLS Certificate Check?",
-				Default: false,
+				Default: true,
 				Help:    "Leave it as default unless you know what you are doing.",
 			},
 		},

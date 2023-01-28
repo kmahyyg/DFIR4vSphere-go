@@ -128,18 +128,23 @@ func (vsc *vSphereClient) RetrieveESXiHostBasicInfo(vcbi *VCBasicInfo) error {
 		if err != nil {
 			return err
 		}
+		log.Infoln("retrEsxiHBI, init done.")
 		err = esxBInfo.GetInfoFunc1()
 		if err != nil {
 			log.Errorln("ESXiHostBasicInfoF1, err:", err)
 		}
+		log.Infoln("retrEsxiHBI-GIFunc1, done.")
 		err = esxBInfo.ExposeESXCliv2()
 		if err != nil {
 			return err
 		}
+		log.Infoln("retrEsxiHBI-ExposeESXCli2, done.")
 		err = esxBInfo.GetInfoFunc2()
 		if err != nil {
 			log.Errorln("ESXiHostBasicInfoF2, err:", err)
 		}
+		log.Infoln("retrEsxiHBI-GIFunc2, done.")
+		log.Infoln("retrEsxiHBI, finished.")
 	}
 	return nil
 }
