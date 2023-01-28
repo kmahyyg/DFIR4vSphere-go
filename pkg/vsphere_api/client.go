@@ -2,6 +2,7 @@ package vsphere_api
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"github.com/kmahyyg/DFIR4vSphere-go/pkg/common"
 	log "github.com/sirupsen/logrus"
@@ -86,7 +87,9 @@ func (vsc *vSphereClient) NewClient() error {
 		log.Debugln("http_proxy environment variable set.")
 	}
 	if vsc.skipTLS {
-		http.DefaultTransport.(*http.Transport).TLSClientConfig.InsecureSkipVerify = vsc.skipTLS
+		http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{
+			InsecureSkipVerify: vsc.skipTLS,
+		}
 	}
 	// rebuild the whole mu and context
 	vsc.dataCtx = context.WithValue(context.TODO(), "data", make(map[string]interface{}))
