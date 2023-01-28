@@ -14,9 +14,7 @@ import (
 	"github.com/vmware/govmomi/vim25"
 	"github.com/vmware/govmomi/vim25/methods"
 	"github.com/vmware/govmomi/vim25/soap"
-	"net/http"
 	"net/url"
-	"os"
 	"sync"
 	"time"
 )
@@ -101,15 +99,6 @@ func (vsc *vSphereClient) GetSOAPClient() *vim25.Client {
 }
 
 func (vsc *vSphereClient) soapConfigFunc(sc *soap.Client) error {
-	// before login, configure client
-	if vsc.httpProxy != nil {
-		sc.DefaultTransport().Proxy = http.ProxyURL(vsc.httpProxy)
-		_ = os.Setenv("http_proxy", vsc.httpProxy.String())
-		log.Debugln("http_proxy environment variable set.")
-	}
-	if vsc.skipTLS {
-		sc.DefaultTransport().TLSClientConfig.InsecureSkipVerify = vsc.skipTLS
-	}
 	sc.UserAgent = "DFIR4vSphere-Go/" + common.VersionStr
 	// now this client is initialized without error
 	return nil
