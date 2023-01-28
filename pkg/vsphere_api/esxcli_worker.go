@@ -46,9 +46,9 @@ func (esxhbi *ESXHostBasicInfo) GetInfoFunc2() (err error) {
 	if esxhbi.esxcliExec == nil {
 		return ErrPrerequisitesNotSatisfied
 	}
-	//TODO: execute command list, command are recorded in docs
+	// execute command list, command are recorded in docs
 	// save as csv file, filename: machineName-CommandName-Timestamp.csv
-	//TODO: optimize output file location, must be saved to seperator folder, named by current date using YYYYMMDD
+	// optimize output file location, must be saved to seperator folder, named by current date using YYYYMMDD
 	var machineName = filepath.Base(esxhbi.InventoryPath)
 	if len(machineName) == 0 {
 		machineName, err = GetNanoID(6)
@@ -91,7 +91,7 @@ func FormatAndSave(machineName string, cateName string, resp *esxcli.Response) (
 		fallthrough
 	default:
 		// use json
-		if alreadyTabled {
+		if alreadyTabled && len(fieldKeys) != 0 {
 			fDstPath += ".csv"
 		} else {
 			fDstPath += ".json"
