@@ -2,7 +2,7 @@
 
 DFIR4vSphere Golang Implementation
 
-v0.1 should be a working version. Report to Issue if any problem has been discovered.
+v0.1.2 should be a working version. Report to Issue if any problem has been discovered.
 
 # Build and Compile
 
@@ -17,13 +17,13 @@ go mod tidy
 
 # Usage
 
-The program will read `http_proxy` and `VSPHERE_URL` to suggest you for some input.
+The program will read `http_proxy` and `VSPHERE_URL` environment variables to suggest you for some input.
 
 For detailed commands: Check [full help docs](/pkg/subcmds/full-help.md).
 
 Please only use `exit` command for exit, if not necessary, do not use Ctrl-C to exit directly.
 
-## Help! I can't login into vCenter or VCSA or ESXi Management, What should I do for resetting or unlocking?
+## Help! I can't log in to vCenter or VCSA or ESXi Management, What should I do for resetting or unlocking?
 
 - for VCSA root account: https://kb.vmware.com/s/article/2147144
 - for ESXi host: https://kb.vmware.com/s/article/1317898
