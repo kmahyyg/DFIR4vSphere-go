@@ -2,7 +2,6 @@ package vsphere_api
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/vmware/govmomi/find"
@@ -25,25 +24,15 @@ type vcUser struct {
 }
 
 type VCBasicInfo struct {
-	ESXHostList           []string                     `json:"esx_host_names"`
-	ESXHostObjs           []*object.HostSystem         `json:"-"`
-	VCAuthoriRole         []*vcAuthorizationRole       `json:"vc_authorization_roles"`
-	VCAuthoriPerm         []*vcPermission              `json:"vc_authorization_permissions"`
-	EventMaxAge           int                          `json:"event_max_age"`
-	SSOPasswordPolicyDesc string                       `json:"sso_password_policy"`
-	SSOIDPDesc            []*vcIdentityProvider        `json:"sso_idp"`
-	SSOGroups             []*vcGroup                   `json:"sso_groups"`
-	SSOUsers              []*vcUser                    `json:"sso_users"`
-	ESXHostsData          map[string]*ESXHostBasicInfo `json:"esx_hosts_data"`
-}
-
-func (vcbi *VCBasicInfo) String() string {
-	data, err := json.Marshal(vcbi)
-	if err != nil {
-		log.Errorln("convert from vcbi to string, err: ", err)
-		return ""
-	}
-	return string(data)
+	ESXHostList           []string               `json:"esx_host_names"`
+	ESXHostObjs           []*object.HostSystem   `json:"-"`
+	VCAuthoriRole         []*vcAuthorizationRole `json:"vc_authorization_roles"`
+	VCAuthoriPerm         []*vcPermission        `json:"vc_authorization_permissions"`
+	EventMaxAge           int                    `json:"event_max_age"`
+	SSOPasswordPolicyDesc string                 `json:"sso_password_policy"`
+	SSOIDPDesc            []*vcIdentityProvider  `json:"sso_idp"`
+	SSOGroups             []*vcGroup             `json:"sso_groups"`
+	SSOUsers              []*vcUser              `json:"sso_users"`
 }
 
 type vcIdentityProviders struct {
