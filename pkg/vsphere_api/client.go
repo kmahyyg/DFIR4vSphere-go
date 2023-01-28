@@ -119,6 +119,11 @@ func (vsc *vSphereClient) Login2SSOMgmt() (*ssoadmin.Client, error) {
 	var err error
 	authCtx := context.Background()
 	// vmwSoapClient with pre-configured using
+	err = vsc.soapConfigFunc(vsc.vmwSoapClient.Client)
+	if err != nil {
+		log.Errorln("config soap client proxy/tls prefs, err:", err)
+		return nil, err
+	}
 	vsc.ssoClient, err = ssoadmin.NewClient(authCtx, vsc.vmwSoapClient)
 	if err != nil {
 		log.Errorln("sso client instance not created, err: ", err)
@@ -144,7 +149,6 @@ func (vsc *vSphereClient) Login2SSOMgmt() (*ssoadmin.Client, error) {
 		return nil, err
 	}
 	// before login, configure client
-	err = vsc.soapConfigFunc(vsc.ssoClient.Client)
 	err = vsc.ssoClient.Login(vsc.ssoClient.WithHeader(authCtx, authHeader))
 	if err != nil {
 		log.Errorln("sso client login failed, err:", err)
