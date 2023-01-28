@@ -128,6 +128,7 @@ func (vsc *vSphereClient) Login2SSOMgmt() (*ssoadmin.Client, error) {
 		log.Errorln("token issue from sts error, err:", err)
 		return nil, err
 	}
+	vsc.ssoClient.RoundTripper = vsc.vmwSoapClient.RoundTripper
 	err = vsc.ssoClient.Login(vsc.ssoClient.WithHeader(authCtx, authHeader))
 	if err != nil {
 		log.Errorln("sso client login failed, err:", err)
