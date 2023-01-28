@@ -1,6 +1,8 @@
 # DFIR4vSphere-go
 
-DFIR4vSphere Golang Implementation [WIP]
+DFIR4vSphere Golang Implementation
+
+v0.1 should be a working version. Report to Issue if any problem has been discovered.
 
 # Build and Compile
 
@@ -30,6 +32,14 @@ Please only use `exit` command for exit, if not necessary, do not use Ctrl-C to 
 # Debug
 
 Try: https://github.com/vmware/govmomi/tree/main/vcsim which mocked a vCenter API.
+
+# Features
+
+1. Retrieve support bundle: ![suppb](./docs/assets/suppb.png)
+2. Each ESXi Host Information Retrieving: ![basic_i.png](./docs/assets/basic_i.png) ![basic_i_opt.png](./docs/assets/basic_i_opt.png)
+3. Reconnect: ![reconn.png](./docs/assets/reconn.png)
+4. Show Full Help: ![fullh.png](./docs/assets/fullhelp.png)
+5. VI Events Log Retrieving: ![vievnt.png](./docs/assets/vi_events.png)
 
 # Privacy
 
