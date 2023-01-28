@@ -98,10 +98,10 @@ func (vsc *vSphereClient) progressedDownloader(dstFile string, url string, dwnld
 	httpCli.Transport = http.DefaultTransport
 	if vsc.httpProxy != nil {
 		httpCli.Transport.(*http.Transport).Proxy = http.ProxyURL(vsc.httpProxy)
-		httpCli.Transport.(*http.Transport).TLSClientConfig = &tls.Config{
-			ClientAuth:         tls.NoClientCert,
-			InsecureSkipVerify: vsc.skipTLS,
-		}
+	}
+	httpCli.Transport.(*http.Transport).TLSClientConfig = &tls.Config{
+		ClientAuth:         tls.NoClientCert,
+		InsecureSkipVerify: vsc.skipTLS,
 	}
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
