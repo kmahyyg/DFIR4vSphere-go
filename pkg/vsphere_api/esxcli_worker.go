@@ -79,7 +79,7 @@ func FormatAndSave(machineName string, cateName string, resp *esxcli.Response) (
 	// sort data before save
 	var fieldKeys []string
 	// create and save
-	var fDstPath = machineName + "-" + cateName + "-" + strconv.FormatInt(time.Now().UnixNano(), 10)
+	var fDstPath = "output/" + machineName + "-" + cateName + "-" + strconv.FormatInt(time.Now().Unix(), 10)
 	// create corresponding writer
 	var alreadyTabled bool
 	var fd *os.File
