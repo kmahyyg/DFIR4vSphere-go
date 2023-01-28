@@ -39,7 +39,7 @@ type vcIdentityProviders struct {
 	IDP *ssotypes.IdentitySources
 }
 
-func (vcsidp *vcIdentityProviders) ToProviderArray(vcbi *VCBasicInfo) []*vcIdentityProvider {
+func (vcsidp *vcIdentityProviders) ToProviderArray(vcbi *VCBasicInfo) error {
 	idps := make([]*vcIdentityProvider, 0)
 	// sso on system domain
 	for _, v := range vcsidp.IDP.System.Domains {
@@ -209,6 +209,11 @@ func (vsc *vSphereClient) ListAllUsers(vcbi *VCBasicInfo) error {
 		return err
 	}
 	log.Debugln("executed: list identity sources in ListAllUsers")
+	err = vcidps.ToProviderArray(vcbi)
+	if err != nil {
+		log.Errorln("from vcidps to array, err:", err)
+		return err
+	}
 	// list sso groups
 	grupInfo, err := ssocli.FindGroups(tmpCtx, "")
 	if err != nil {
