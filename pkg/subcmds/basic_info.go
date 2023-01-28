@@ -30,7 +30,7 @@ func RetrieveBasicInformation() {
 	}
 	// processing if only vcenter
 	if vsphere_api.GlobalClient.IsVCenter() {
-		log.Infoln("vcenter determined. execute specific method.")
+		log.Infoln("vcenter determined. execute vcsa-specific method.")
 		// retrieve permissions list with role
 		err = vsphere_api.GlobalClient.ListPermissions(vcbi)
 		if err != nil {

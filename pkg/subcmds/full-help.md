@@ -2,7 +2,7 @@
 
 This is an interactive command-line tool to help you do forensics job for vSphere products.
 
-Version v0.0.1-snapshot6-0-g8c2522c
+Version v0.0.2-snapshot2-2-g604932d
 
 Full Commands:
 - `support_bundle`
@@ -73,28 +73,28 @@ Will collect the following information:
 For ESXi-standalone host:
 - [x] | Get running service status (covered in HostSystem "config" property above)
 - [x] | Get authentication information (covered in HostSystem "config" property above)
-- [ ] | Expose ESXCli v2, and Do following:
+- [x] | Expose ESXCli v2, and Do following:
     - [x] | Get System Version (covered in HostSystem "config" property above)
-    - [ ] | List System Account
-    - [ ] | List System Permission
-    - [ ] | List System Modules
-    - [ ] | List System Processes
+    - [x] | List System Account
+    - [x] | List System Permission
+    - [x] | List System Modules
+    - [x] | List System Processes
     - [x] | List System Certificate Store
-    - [ ] | (If Version >= 7.0.2) Get System Encryption Settings
-    - [ ] | (If Version >= 7.0.2) Get System Guest Store Repository
-    - [ ] | (If Version >= 7.0.2) (list changed items only) List System Advanced Settings using Delta method
-    - [ ] | (If Version >= 7.0.2) (list changed items only) List System Kernel Settings List
-    - [ ] | (If Version >= 7.0.2) Get System SysLog Config
-    - [ ] | (If Version >= 7.0.0) Get System BaseImage Information
-    - [ ] | (If Version >= 7.0.0) Get Software VIBs
-    - [ ] | (If Version >= 7.0.0) Get Software Profiles
+    - [x] | (If Version >= 7.0.2) Get System Encryption Settings
+    - [x] | (If Version >= 7.0.2) Get System Guest Store Repository
+    - [x] | (If Version >= 7.0.2) (list changed items only) List System Advanced Settings using Delta method
+    - [x] | (If Version >= 7.0.2) (list changed items only) List System Kernel Settings List
+    - [x] | (If Version >= 7.0.2) Get System SysLog Config
+    - [x] | (If Version >= 7.0.0) Get System BaseImage Information
+    - [x] | (If Version >= 7.0.0) Get Software VIBs
+    - [x] | (If Version >= 7.0.0) Get Software Profiles
     - [x] | (If Version >= 7.0.0) List Storage IOFilters (covered in HostSystem "config" property above)
-    - [ ] | List storage filesystem
+    - [x] | List storage filesystem
     - [x] | Network interface IPs and routes (covered in HostSystem "config" property above)
-    - [ ] | Network neighbor list using ARP cache
+    - [x] | Network neighbor list using ARP cache
     - [x] | Network DNS IPs (covered in HostSystem "config" property above)
-    - [ ] | Network Connections status
-    - [ ] | Network PortGroup VM Lists
+    - [x] | Network Connections status
+    - [x] | Network PortGroup VM Lists
     - [x] | Network vSwitch List (covered in HostSystem "config" property above)
 
 The corresponding `esxcli` command lists are, without prefix `govc host.esxcli` :

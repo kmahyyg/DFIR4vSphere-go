@@ -216,7 +216,7 @@ func (vsc *vSphereClient) ListAllUsers(vcbi *VCBasicInfo) error {
 	vcidps := &vcIdentityProviders{}
 	vcidps.IDP, err = ssocli.IdentitySources(tmpCtx)
 	if err != nil {
-		log.Errorln("get identity sources err.")
+		log.Errorln("get identity sources, err:", err)
 		return err
 	}
 	log.Debugln("executed: list identity sources in ListAllUsers")
