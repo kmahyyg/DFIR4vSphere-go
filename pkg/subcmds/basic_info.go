@@ -37,12 +37,14 @@ func RetrieveBasicInformation() {
 			log.Errorln("retrieve permissions list out, err: ", err)
 		}
 		log.Infoln("list permission finished.")
+		// ---- must use vcenter specific token authentication ----
 		// get local and sso user
 		err = vsphere_api.GlobalClient.ListAllUsers(vcbi)
 		if err != nil {
 			log.Errorln("list all users, err: ", err)
 		}
 		log.Infoln("list all users finished.")
+		// ---- general procedures ----
 		// get max age
 		vcbi.EventMaxAge, err = vsphere_api.GlobalClient.GetEventMaxAge()
 		if err != nil {

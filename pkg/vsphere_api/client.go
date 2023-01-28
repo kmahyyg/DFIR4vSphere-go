@@ -9,6 +9,8 @@ import (
 	"github.com/vmware/govmomi/find"
 	"github.com/vmware/govmomi/object"
 	"github.com/vmware/govmomi/session/cache"
+	"github.com/vmware/govmomi/ssoadmin"
+	"github.com/vmware/govmomi/sts"
 	"github.com/vmware/govmomi/vim25"
 	"github.com/vmware/govmomi/vim25/methods"
 	"github.com/vmware/govmomi/vim25/soap"
@@ -31,6 +33,9 @@ var (
 
 // vSphereClient handle basic authentication and session stuff
 type vSphereClient struct {
+	// ssoClient Usage
+	ssoClient *ssoadmin.Client
+	// soapURL for SDK
 	soapURL *url.URL
 	// skipTLS should be set here since it's always static and user defined it at very beginning
 	skipTLS   bool
@@ -95,6 +100,42 @@ func (vsc *vSphereClient) GetSOAPClient() *vim25.Client {
 	return vsc.vmwSoapClient
 }
 
+func (vsc *vSphereClient) Login2SSOMgmt() (*ssoadmin.Client, error) {
+	var err error
+	authCtx := context.Background()
+	// vmwSoapClient with pre-configured using
+	vsc.ssoClient, err = ssoadmin.NewClient(authCtx, vsc.vmwSoapClient)
+	if err != nil {
+		log.Errorln("sso client instance not created, err: ", err)
+		return nil, err
+	}
+	tokenN, err := sts.NewClient(authCtx, vsc.vmwSoapClient)
+	if err != nil {
+		log.Errorln("sts client creation error: ", err)
+		return nil, err
+	}
+	tokenR := sts.TokenRequest{
+		Userinfo:    vsc.soapURL.User,
+		Certificate: vsc.vmwSoapClient.Certificate(),
+	}
+	authHeader := soap.Header{
+		Security: &sts.Signer{
+			Certificate: vsc.vmwSoapClient.Certificate(),
+		},
+	}
+	authHeader.Security, err = tokenN.Issue(authCtx, tokenR)
+	if err != nil {
+		log.Errorln("token issue from sts error, err:", err)
+		return nil, err
+	}
+	err = vsc.ssoClient.Login(vsc.ssoClient.WithHeader(authCtx, authHeader))
+	if err != nil {
+		log.Errorln("sso client login failed, err:", err)
+		return nil, err
+	}
+	return vsc.ssoClient, nil
+}
+
 // LoginViaPassword will try to log in using credentials, if Token is required, you may query STS, then
 // issue ticket or token yourself.
 func (vsc *vSphereClient) LoginViaPassword() (err error) {
@@ -148,9 +189,13 @@ func (vsc *vSphereClient) Logout() (err error) {
 	vsc.curSessLoggedIn = false
 	err = vsc.curSession.Logout(context.Background(), vsc.vmwSoapClient)
 	if err != nil {
-		return err
+		log.Errorln("session logout failed, err:", err)
 	}
-	return nil
+	if vsc.ssoClient != nil {
+		err = vsc.ssoClient.Logout(context.Background())
+		log.Errorln("sso client logout, failed: ", err)
+	}
+	return err
 }
 
 // ShowAPIVersion will be used to test connection is working or not

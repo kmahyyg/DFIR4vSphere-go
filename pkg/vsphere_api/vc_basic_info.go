@@ -7,7 +7,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/vmware/govmomi/find"
 	"github.com/vmware/govmomi/object"
-	"github.com/vmware/govmomi/ssoadmin"
 	ssometd "github.com/vmware/govmomi/ssoadmin/methods"
 	ssotypes "github.com/vmware/govmomi/ssoadmin/types"
 	"github.com/vmware/govmomi/vim25/types"
@@ -206,9 +205,10 @@ func fromVInternalPermissionSetToOutPerm(r1 types.Permission) (*vcPermission, er
 
 func (vsc *vSphereClient) ListAllUsers(vcbi *VCBasicInfo) error {
 	tmpCtx := context.Background()
-	ssocli, err := ssoadmin.NewClient(tmpCtx, vsc.vmwSoapClient)
-	if err != nil {
-		log.Errorln("cannot create ssoadmin client.")
+	// custom login method
+	ssocli, err := vsc.Login2SSOMgmt()
+	if err != nil || ssocli == nil {
+		log.Errorln("cannot create ssoadmin client, err:", err)
 		return err
 	}
 	log.Debugln("executed: created sso admin client in ListAllUsers")
