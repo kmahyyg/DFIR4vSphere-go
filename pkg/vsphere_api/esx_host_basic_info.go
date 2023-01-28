@@ -331,10 +331,34 @@ func convertHostCertInfo2External(ci *object.HostCertificateInfo) *ESXHostCert {
 	res := &ESXHostCert{
 		ThumbprintSHA1:   ci.ThumbprintSHA1, // if managed by VCSA, this will be replaced by VCSA cert
 		ThumbprintSHA256: ci.ThumbprintSHA256,
-		SubjectName:      ci.SubjectName().String(),
-		IssuerName:       ci.IssuerName().String(),
-		NotAfter:         ci.Certificate.NotAfter.String(),
-		NotBefore:        ci.Certificate.NotBefore.String(),
+		SubjectName: func() string {
+			if ci.SubjectName() == nil {
+				return ci.HostCertificateManagerCertificateInfo.Subject
+			}
+			return "-"
+		}(),
+		IssuerName: func() string {
+			if ci.IssuerName() == nil {
+				return ci.HostCertificateManagerCertificateInfo.Issuer
+			}
+			return "-"
+		}(),
+		NotAfter: func() string {
+			if ci.Certificate == nil {
+				if ci.HostCertificateManagerCertificateInfo.NotAfter != nil {
+					return ci.HostCertificateManagerCertificateInfo.NotAfter.String()
+				}
+			}
+			return "-"
+		}(),
+		NotBefore: func() string {
+			if ci.Certificate == nil {
+				if ci.HostCertificateManagerCertificateInfo.NotBefore != nil {
+					return ci.HostCertificateManagerCertificateInfo.NotBefore.String()
+				}
+			}
+			return "-"
+		}(),
 	}
 	return res
 }
