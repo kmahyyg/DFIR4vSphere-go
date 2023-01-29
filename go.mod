@@ -2,8 +2,6 @@ module github.com/kmahyyg/DFIR4vSphere-go
 
 go 1.19
 
-replace intra-git.kmahyyg.xyz/kmahyyg/usertelemetry => /Users/kmahyyg/Developer/GitBins/userTelemetryCF/userTelemetryCF/golang
-
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.6
 	github.com/matoous/go-nanoid v1.5.0
